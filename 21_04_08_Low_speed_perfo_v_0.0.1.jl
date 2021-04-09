@@ -48,10 +48,10 @@ md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(1:10:1000, default=20)
 md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.1:10:600000, default=8000)) ______ CD0 =  $(@bind CD0 NumberField(0.0:.005:.1, default=.04))   "
 
 # ╔═╡ 98eeefa9-5c98-4c1c-9d00-f494d3eb095a
-md"  Aircraft weight in **N** = $((Mass*9.81) ) _____  AC/DC = $(floor(CD0*10000))    "
+md"  Aircraft weight in **N** = $(round(Int, Mass*9.81)) _____  AC/DC = $(round(Int, CD0*10000))    "
 
 # ╔═╡ d6f27d04-c041-4eee-a219-574dbed118fc
-md"  Wing Loading (Kgf/m^2) = $(floor(Mass/Sw)) "
+md"  Wing Loading (Kgf/m^2) = $(round((Mass/Sw); digits=1)  ) " 
 
 # ╔═╡ 508a4cb4-5b8b-40b2-a8bd-33f761a06281
 md" e =  $(@bind Oswald NumberField(0.1:.1:1.5, default=.85))  Aspect Ratio =  $(@bind AR NumberField(1:1:30, default=10))  "
@@ -71,9 +71,6 @@ md" ρ(h) :  ISA+0 Density in Kg/m^3 as a function of altitude (h) with h in met
 # ╔═╡ 13b762d4-366a-47a5-ad77-a18e2b187b78
 ρ(h) = 1.225 * (1-0.0000226 * h) ^4.256;
 
-# ╔═╡ c755a5f9-8e92-4612-bfa1-ec543cd66d97
-md"EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ___ EAS(kt) =  $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5*1.94384; digits = 1))       "
-
 # ╔═╡ 4077c54d-2a6e-4e80-975c-caf3825f1bc1
 Drag_parasitic(_TAS, _alt, _CD0, _Sw) = .5 * ρ(_alt) * _TAS^2 * CD0 * _Sw;
 
@@ -89,6 +86,9 @@ TAS_Vs1g_at_alt(_W, _h, _CLmax, _Sw) = ((_W)/(ρ(_h)*_CLmax*_Sw))^0.5 ;
 
 # ╔═╡ da899a54-70a9-4b46-b470-0c9890e5f2de
  Vs1g =   TAS_Vs1g_at_alt(Mass*9.81, Alt_op, CLmax, Sw)
+
+# ╔═╡ c755a5f9-8e92-4612-bfa1-ec543cd66d97
+md"EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ___ EAS(kt) =  $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5*1.94384; digits = 1)) ____  TASstall(m/s) =  $(round(Vs1g; digits = 1))         "
 
 # ╔═╡ 887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 begin
@@ -230,7 +230,6 @@ md" The code below this point is to set-up the notebook"
 # ╟─afa9f7ee-d8e5-426c-9df0-3a05641d8fbb
 # ╟─5502a5c3-3ea4-452c-9704-e49e6434aa40
 # ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
-# ╟─da899a54-70a9-4b46-b470-0c9890e5f2de
 # ╟─ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
 # ╟─d79c73d4-9889-4feb-8eb8-58583dfcc04c
 # ╟─22aa1e3d-5265-4e35-90bb-b146954efcf5
@@ -245,6 +244,7 @@ md" The code below this point is to set-up the notebook"
 # ╠═b0c37277-a103-4eef-8ec7-544a6a68cb94
 # ╠═5ccc2dc6-7a26-4273-9a6d-1cafd1c7accb
 # ╠═8cb8c86f-854b-4b7d-af43-197527f1df3e
+# ╠═da899a54-70a9-4b46-b470-0c9890e5f2de
 # ╟─27007d5a-6f85-4ff4-9185-ab1e0df69eea
 # ╟─2a6af729-1805-4222-b134-592d25ff1aa5
 # ╠═13b762d4-366a-47a5-ad77-a18e2b187b78
