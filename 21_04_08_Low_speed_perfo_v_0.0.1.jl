@@ -45,13 +45,19 @@ md"### Define aircraft parameters and status   "
 md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(1:10:1000, default=20))     Aircraft maximum lift coefficient (CLmax) =  $(@bind CLmax NumberField(0.1:.1:7, default=2))      "
 
 # ╔═╡ de07547d-4c70-4793-96f2-8dfb2379ac54
-md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.1:10:600000, default=8000))       Aircraft weight in **N** = $(Mass*9.81)"
+md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.1:10:600000, default=8000)) ______ CD0 =  $(@bind CD0 NumberField(0.0:.005:.1, default=.04))   "
 
-# ╔═╡ 0b9c9c9d-4116-49b5-bf33-bcbdda5cb88d
-md" CD0 =  $(@bind CD0 NumberField(0.00001:.0001:2, default=.002))       AC/DC = $(CD0*9.81)"
+# ╔═╡ 98eeefa9-5c98-4c1c-9d00-f494d3eb095a
+md"  Aircraft weight in **N** = $((Mass*9.81) ) _____  AC/DC = $(floor(CD0*10000))    "
+
+# ╔═╡ d6f27d04-c041-4eee-a219-574dbed118fc
+md"  Wing Loading (Kgf/m^2) = $(floor(Mass/Sw)) "
 
 # ╔═╡ 508a4cb4-5b8b-40b2-a8bd-33f761a06281
 md" e =  $(@bind Oswald NumberField(0.1:.1:1.5, default=.85))  Aspect Ratio =  $(@bind AR NumberField(1:1:30, default=10))  "
+
+# ╔═╡ ae28f744-625b-4fac-a8d2-c74855c752ea
+md"### Aircraft Aerodynamic functions"
 
 # ╔═╡ 5ccc2dc6-7a26-4273-9a6d-1cafd1c7accb
 CDi(_CL, _AR, _e) = _CL^2 /(π * _AR * _e);
@@ -75,30 +81,37 @@ Drag_parasitic(_TAS, _alt, _CD0, _Sw) = .5 * ρ(_alt) * _TAS^2 * CD0 * _Sw;
 CL(_TAS, _alt, _Sw, _W) = _W / (.5 * ρ(_alt) * _TAS^2 * _Sw);
 
 # ╔═╡ 4116c5b3-64f8-4f31-8040-cc997ba57243
-Drag_induced(_TAS, _alt, _CD0, _Sw, _e, _W, _AR) = 	.5 * ρ(_alt) * _TAS^2 * CDi(CL(_TAS, _alt,  _Sw, _W), _AR, _e) * _Sw;
+Drag_induced(_TAS, _alt, _CD0, _Sw, _e, _W, _AR) = 	.5 * ρ(_alt) * _TAS^2 * CDi(CL(_TAS, _alt, _Sw, _W), _AR, _e) * _Sw;
+
+# ╔═╡ 8cb8c86f-854b-4b7d-af43-197527f1df3e
+# Calculation of stall speed at the operating altitude	
+TAS_Vs1g_at_alt(_W, _h, _CLmax, _Sw) = ((_W)/(ρ(_h)*_CLmax*_Sw))^0.5 ;
+
+# ╔═╡ da899a54-70a9-4b46-b470-0c9890e5f2de
+ Vs1g =   TAS_Vs1g_at_alt(Mass*9.81, Alt_op, CLmax, Sw)
 
 # ╔═╡ 887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 begin
 	
-	plot( xticks = 0:1000:11000, yticks = 0:10:100, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
+plot( xticks = 10:10:350, yticks = 0:5000:50000, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
 	
 	# Plotting the data
-	v1 = (20:1:150)   # Define series for x axis (from 0 to 10000 in steps of 500)
+v1 = (Vs1g:1:350)   # Define series for x axis (from 0 to 10000 in steps of 500)
 
 	
-	plot!(v1, Drag_parasitic.(v1, Alt_op, CD0, Sw)       , label = "p(h)/p(0) %", linewidth =3)
-		plot!(v1, Drag_induced.(v1, Alt_op, CD0, Sw, Oswald, Mass*9.81, AR)      , label = "p(h)/p(0) %", linewidth =3)
+plot!(v1, Drag_parasitic.(v1, Alt_op, CD0, Sw), label = "D_parasitic (N)", linewidth =3)
+
+plot!(v1, Drag_induced.(v1, Alt_op, CD0, Sw, Oswald, Mass*9.81, AR) , label = "D_Induced(N)", linewidth =3)
 	
-		plot!(v1, (Drag_parasitic.(v1, Alt_op, CD0, Sw) + Drag_induced.(v1, Alt_op, CD0, Sw, Oswald, Mass*9.81, AR))      , label = "p(h)/p(0) %", linewidth =3)
+plot!(v1, (Drag_parasitic.(v1, Alt_op, CD0, Sw) + Drag_induced.(v1, Alt_op, CD0, Sw, Oswald, Mass*9.81, AR))      , label = "Thrust Required (N)", linewidth =3)
 	
+		
+# Final plot attributes
+xlabel!("TAS (m)")  # Set label for x axis
+ylabel!("Thrust required")  # Set label for y axis (wrt: "with respect to")
+title!("Thrust required for steady and level flight")
 	
-	
-	# Final plot attributes
-	xlabel!("TAS (m)")  # Set label for x axis
-	ylabel!("Thrust required")  # Set label for y axis (wrt: "with respect to")
-	title!("Thrust required for steady and level flight")
-	
-	plot!()  # Update plot with all of the above
+plot!()  # Update plot with all of the above
 	
 end
 
@@ -161,9 +174,6 @@ begin
 TAS_range = 1:5:360  # Define the range of TAS for the x axis (from 1 to 360 in steps of 5)
 h_range = [1:250:10000...] # Define the range of altitudes for the y axis (frfom 1 to 10000 metres in steps of 250m(
 
-# Calculation of stall speed at the operating altitude	
-TAS_Vs1g_at_alt = ((9.81*Mass)/(ρ(Alt_op)*CLmax*Sw))^0.5 
-	
 	
 # Initialize plot	
 plot( xticks = 0:50:400, yticks = 0:500:11000, leg=true,
@@ -189,9 +199,9 @@ annotate!([TAS_op]  ,[Alt_op-300], Plots.text("TAS(kt)= "*string(TAS_op), 8, :ye
 annotate!([TAS_op]  ,[Alt_op-600], Plots.text("h(m)= "*string(Alt_op), 8, :yellow, :left))		
 
 # Draw a circle showing the stall speed at the operating altitude
-scatter!([TAS_Vs1g_at_alt],[Alt_op], label = "Stall speed kt(TAS)", ms = 4)	
+scatter!([Vs1g],[Alt_op], label = "Stall speed kt(TAS)", ms = 4)	
 # Draw a label with the stall speed at this altitude, rounded to 1 decimal place and converted to knots (1m/2 = 1.94384 kt)
-annotate!([TAS_Vs1g_at_alt+15]  ,[Alt_op+200], Plots.text(string(round((TAS_Vs1g_at_alt*1.94384); digits=1))*" kt", 8, :orange, :center))
+annotate!([Vs1g+15]  ,[Alt_op+200], Plots.text(string(round((Vs1g*1.94384); digits=1))*" kt", 8, :orange, :center))
 	
 # Define plot name and axis labels	
 xlabel!("TAS (m/s)")  # Set label for x axis
@@ -211,23 +221,30 @@ M(TAS, h) = TAS / a(h) ;
 # ╔═╡ 5502a5c3-3ea4-452c-9704-e49e6434aa40
 md"TAS(m/s) = $(TAS_op) ___ TAS(kt) = $(round(TAS_op*1.94384; digits = 1)) ___ Mach no =  $(round(M(TAS_op, Alt_op); digits = 2))  ___ Altitude (m) =  $(Alt_op)    "
 
+# ╔═╡ 8b1ccfb8-6b6c-4caa-823f-b16b59eee635
+md" The code below this point is to set-up the notebook"
+
 # ╔═╡ Cell order:
 # ╟─caaadf91-6ddd-4933-bf1a-98fb11ab0fec
 # ╟─6f320fcf-346d-4260-ad63-36269b9de1eb
 # ╟─afa9f7ee-d8e5-426c-9df0-3a05641d8fbb
 # ╟─5502a5c3-3ea4-452c-9704-e49e6434aa40
 # ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
+# ╟─da899a54-70a9-4b46-b470-0c9890e5f2de
 # ╟─ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
 # ╟─d79c73d4-9889-4feb-8eb8-58583dfcc04c
 # ╟─22aa1e3d-5265-4e35-90bb-b146954efcf5
 # ╟─de07547d-4c70-4793-96f2-8dfb2379ac54
-# ╟─0b9c9c9d-4116-49b5-bf33-bcbdda5cb88d
+# ╟─98eeefa9-5c98-4c1c-9d00-f494d3eb095a
+# ╟─d6f27d04-c041-4eee-a219-574dbed118fc
 # ╟─508a4cb4-5b8b-40b2-a8bd-33f761a06281
 # ╟─887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
-# ╟─4077c54d-2a6e-4e80-975c-caf3825f1bc1
-# ╟─4116c5b3-64f8-4f31-8040-cc997ba57243
-# ╟─b0c37277-a103-4eef-8ec7-544a6a68cb94
-# ╟─5ccc2dc6-7a26-4273-9a6d-1cafd1c7accb
+# ╟─ae28f744-625b-4fac-a8d2-c74855c752ea
+# ╠═4077c54d-2a6e-4e80-975c-caf3825f1bc1
+# ╠═4116c5b3-64f8-4f31-8040-cc997ba57243
+# ╠═b0c37277-a103-4eef-8ec7-544a6a68cb94
+# ╠═5ccc2dc6-7a26-4273-9a6d-1cafd1c7accb
+# ╠═8cb8c86f-854b-4b7d-af43-197527f1df3e
 # ╟─27007d5a-6f85-4ff4-9185-ab1e0df69eea
 # ╟─2a6af729-1805-4222-b134-592d25ff1aa5
 # ╠═13b762d4-366a-47a5-ad77-a18e2b187b78
@@ -244,4 +261,5 @@ md"TAS(m/s) = $(TAS_op) ___ TAS(kt) = $(round(TAS_op*1.94384; digits = 1)) ___ M
 # ╠═4d35293d-3313-4870-98bf-6eeb31a388e0
 # ╟─b99e3354-b1c9-4ba9-b3d0-d2ea5450c7c5
 # ╠═867bbb25-27f9-46af-8f61-46877f77d8ef
+# ╟─8b1ccfb8-6b6c-4caa-823f-b16b59eee635
 # ╟─20454a26-4719-4c30-9e46-483c27eb630d
