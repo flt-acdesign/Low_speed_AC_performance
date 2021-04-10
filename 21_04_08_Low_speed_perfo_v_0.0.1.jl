@@ -29,8 +29,11 @@ begin
 	using Statistics, LinearAlgebra  # standard libraries
 end
 
-# ╔═╡ e6461173-0482-4912-964d-f349543ed623
-PlutoUI.LocalResource("./images/logo.png")
+# ╔═╡ d7356e75-d9d5-495c-b661-57864583ae61
+PlutoUI.Resource("https://universidadeuropea.com/resources/static/img/ue-logo.png")
+
+# ╔═╡ ea326e95-0585-41f4-9cb2-da90b680f788
+md""" ## _*FLIGHT MECHANICS*_ """
 
 # ╔═╡ f384cb30-50af-4ad5-8986-2e11ed5a5e1d
 Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER. STEADY AND LEVEL FLIGHT V0.0.1", [md" This notebook is intended *solely for academic purposes*, It **should not be used** in real operational environments or for aircraft design purposes.  Report issues and find the latest version here  [📡](https://github.com/flt-acdesign/Low_speed_AC_performance)  "]))
@@ -488,7 +491,8 @@ md" The code below this point is to set-up the notebook"
 TableOfContents(aside=true)
 
 # ╔═╡ Cell order:
-# ╟─e6461173-0482-4912-964d-f349543ed623
+# ╟─d7356e75-d9d5-495c-b661-57864583ae61
+# ╟─ea326e95-0585-41f4-9cb2-da90b680f788
 # ╟─f384cb30-50af-4ad5-8986-2e11ed5a5e1d
 # ╟─6f320fcf-346d-4260-ad63-36269b9de1eb
 # ╟─addf6fa0-3335-4250-9dcb-eb9e3e87b4af
