@@ -30,13 +30,13 @@ begin
 end
 
 # ╔═╡ f384cb30-50af-4ad5-8986-2e11ed5a5e1d
-Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER V0.0.1", [md" This notebook is intended *solely for academic purposes*, It **should not be used** in real operational environments or for aircraft design purposes.   [*Report issues -and find the latest version- in this link*](https://github.com/flt-acdesign/Low_speed_AC_performance)  "]))
+Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER V0.0.1", [md" This notebook is intended *solely for academic purposes*, It **should not be used** in real operational environments or for aircraft design purposes.  Report issues and find the latest version here  [📡](https://github.com/flt-acdesign/Low_speed_AC_performance)  "]))
 
 # ╔═╡ 6f320fcf-346d-4260-ad63-36269b9de1eb
 md"### Set Operating point for calculations ✈  "
 
-# ╔═╡ afa9f7ee-d8e5-426c-9df0-3a05641d8fbb
-md" Operating Point:       TAS(m/s) $(@bind TAS_op Slider(1:1:340))  Alt(m) $(@bind Alt_op Slider(0:50:11000)) "
+# ╔═╡ addf6fa0-3335-4250-9dcb-eb9e3e87b4af
+md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))  ······   Altitude =  $(@bind Alt_op NumberField(0:100:11000, default=400))      "
 
 # ╔═╡ d79c73d4-9889-4feb-8eb8-58583dfcc04c
 md"### Define aircraft parameters and status   "
@@ -48,7 +48,7 @@ md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(1:1:1000, default=20))
 md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.1:10:600000, default=8000)) ······ **CD0** =  $(@bind CD0 NumberField(0.0:.005:.1, default=.02))   "
 
 # ╔═╡ 98eeefa9-5c98-4c1c-9d00-f494d3eb095a
-md"  Aircraft weight in **N** = $(round(Int, Mass*9.81)) _____  AC/DC = $(round(Int, CD0*10000))    "
+md"  Aircraft weight in **N** = $(round(Int, Mass*9.81)) ······  AC/DC = $(round(Int, CD0*10000))    "
 
 # ╔═╡ d6f27d04-c041-4eee-a219-574dbed118fc
 md"  Wing Loading (Kgf/m^2) = $(round((Mass/Sw); digits=1)  ) " 
@@ -97,7 +97,7 @@ md"EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ······ EA
 # ╔═╡ 887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 begin
 	
-plot( xticks = 10:10:350, yticks = 0:5000:50000, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
+plot( xticks = 10:20:350, yticks = 0:5000:50000, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
 	
 	# Plotting the data
 v1 = (Vs1g:1:350)   # Define series for x axis (from 0 to 10000 in steps of 500)
@@ -111,8 +111,8 @@ plot!(v1, (Drag_parasitic.(v1, Alt_op, CD0, Sw) + Drag_induced.(v1, Alt_op, CD0,
 	
 		
 # Final plot attributes
-xlabel!("TAS (m)")  # Set label for x axis
-ylabel!("Thrust required")  # Set label for y axis (wrt: "with respect to")
+xlabel!("TAS (m/s)")  # Set label for x axis
+ylabel!("Thrust required (N)")  # Set label for y axis (wrt: "with respect to")
 title!("Thrust required for steady and level flight")
 	
 plot!()  # Update plot with all of the above
@@ -236,18 +236,18 @@ TableOfContents(aside=true)
 # ╔═╡ Cell order:
 # ╟─f384cb30-50af-4ad5-8986-2e11ed5a5e1d
 # ╟─6f320fcf-346d-4260-ad63-36269b9de1eb
-# ╟─afa9f7ee-d8e5-426c-9df0-3a05641d8fbb
+# ╟─addf6fa0-3335-4250-9dcb-eb9e3e87b4af
 # ╟─19816267-988f-45d5-8c39-bedc11d76e12
 # ╟─29124d03-7ae5-49f1-8aff-272bc9f3d5cd
 # ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
-# ╠═ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
+# ╟─ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
 # ╟─d79c73d4-9889-4feb-8eb8-58583dfcc04c
-# ╟─22aa1e3d-5265-4e35-90bb-b146954efcf5
+# ╠═22aa1e3d-5265-4e35-90bb-b146954efcf5
 # ╟─de07547d-4c70-4793-96f2-8dfb2379ac54
 # ╟─98eeefa9-5c98-4c1c-9d00-f494d3eb095a
 # ╟─d6f27d04-c041-4eee-a219-574dbed118fc
 # ╟─508a4cb4-5b8b-40b2-a8bd-33f761a06281
-# ╟─887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
+# ╠═887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 # ╟─ae28f744-625b-4fac-a8d2-c74855c752ea
 # ╠═4077c54d-2a6e-4e80-975c-caf3825f1bc1
 # ╠═4116c5b3-64f8-4f31-8040-cc997ba57243
