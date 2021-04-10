@@ -51,19 +51,16 @@ md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(1:1:1000, default=20))
 md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.1:10:600000, default=8000)) ······ **CD0** =  $(@bind CD0 NumberField(0.0:.005:.1, default=.02))   "
 
 # ╔═╡ 98eeefa9-5c98-4c1c-9d00-f494d3eb095a
-md"  Aircraft weight in **N** = $(round(Int, Mass*9.81)) ······  AC/DC = $(round(Int, CD0*10000))    "
+md"  Aircraft weight in **N** = $(round(Int, Mass*9.81)) ···· Wing Loading (Kgf/m^2) = $(round((Mass/Sw); digits=1))   "
 
-# ╔═╡ d6f27d04-c041-4eee-a219-574dbed118fc
-md"  Wing Loading (Kgf/m^2) = $(round((Mass/Sw); digits=1)  ) " 
+# ╔═╡ 701806df-20fe-4181-b9d0-789f0d4a9944
+md" AC/DC (parasit.) = $(round(Int, CD0*10000))  "
 
 # ╔═╡ 508a4cb4-5b8b-40b2-a8bd-33f761a06281
 md" e =  $(@bind Oswald NumberField(0.1:.1:1.5, default=.85))  Aspect Ratio =  $(@bind AR NumberField(1:1:30, default=10))  "
 
 # ╔═╡ ae28f744-625b-4fac-a8d2-c74855c752ea
 md"### Aircraft Aerodynamic functions"
-
-# ╔═╡ 5ccc2dc6-7a26-4273-9a6d-1cafd1c7accb
-CDi(_CL, _AR, _e) = _CL^2 /(π * _AR * _e);
 
 # ╔═╡ 27007d5a-6f85-4ff4-9185-ab1e0df69eea
 md"### ISA+0 Atmosphere functions"
@@ -74,9 +71,9 @@ begin
 # ISA+0 Atmosphere functions
 	
 	
-# NOTE: the text below, with exactly the format used, corresponds to the Julia "docstrings" standard. The documentation needs to be exactly on the line above definging the function. the "Live docs" button at the bottom right of Pluto will show the documentation of the function when the cursor is over the function name anywhere in the code
+# NOTE: the text below, with exactly the format used, corresponds to the Julia "docstrings" standard. The documentation needs to be exactly on the line above the function definition. the "Live docs" button at the bottom right of Pluto will show the documentation of the function when the cursor is over the function name anywhere in the code
 	
-#_____________________________________________________________________________________
+#_________________________________________________________________________________
 """
     ρ(h)
 
@@ -92,15 +89,15 @@ julia> ρ(0)
 """
 ρ(h) = 1.225 * (1-0.0000226 * h) ^4.256
 
-#_____________________________________________________________________________________
+#_________________________________________________________________________________
 	
 	
-#_____________________________________________________________________________________
+#_________________________________________________________________________________
 
 """
     p(h)
 
-ISA+0 Pressure in Pa as a function of altitude (h) with h in meters (Troposphere) 
+ISA+0 Pressure in Pa as a function of altitude (h) with h in meters (Troposphere).
 
 # Examples
 ```julia-repl
@@ -110,13 +107,14 @@ julia> p(0)
 """	
 p(h) = 101325 * (1-0.0000226 * h) ^5.256
 	
-#_____________________________________________________________________________________	
+#_________________________________________________________________________________	
 	
-#_____________________________________________________________________________________
+	
+#_________________________________________________________________________________
 """
     T(h)
 
-ISA+0 Temperature in K as a function of altitude (h) with h in meters (Troposphere)
+ISA+0 Temperature in K as a function of altitude (h) with h in meters (Troposphere).
 
 # Examples
 ```julia-repl
@@ -125,13 +123,16 @@ julia> T(0)
 ```
 """		
 T(h) = 288.15 -6.5 * h /1000
-	#_____________________________________________________________________________________	
+#_________________________________________________________________________________	
 	
-#_____________________________________________________________________________________
+	
+#_________________________________________________________________________________
 """
     a(h)
 
-ISA+0 **speed of sound** in m/s as a function of altitude (**h**) with h in meters (Troposphere). Note `√` is written with \\sqrt<tab>
+ISA+0 **speed of sound** in m/s as a function of altitude (**h**) with h in meters (Troposphere). 
+	
+Note `√` is written with \\sqrt<tab>.
 
 # Examples
 ```julia-repl
@@ -140,14 +141,14 @@ julia> a(0)
 ```
 """			
 a(h) = √(1.4*287*T(h))	
-#_____________________________________________________________________________________
+#_________________________________________________________________________________
 	
 		
-#_____________________________________________________________________________________
+#_________________________________________________________________________________
 """
     M(TAS, h)
 
-Mach number for a given *True Air Speed (TAS)* in m/s and altitude *h* in meters (troposphere) assuming ISA+0 conditions
+Mach number for a given *True Air Speed (TAS)* in m/s and altitude *h* in meters (troposphere) assuming ISA+0 conditions.
 
 # Examples
 ```julia-repl
@@ -156,9 +157,10 @@ julia> M(70,0)
 ```
 """			
 M(TAS, h) = TAS / a(h)
-#_____________________________________________________________________________________	
+#_________________________________________________________________________________	
 	
-#_____________________________________________________________________________________
+	
+#_________________________________________________________________________________
 """
     q(TAS, h)
 
@@ -171,14 +173,14 @@ julia> q(70,0)
 ```
 """		
 q(TAS,h) = .5 * ρ(h)* TAS^2
-#_____________________________________________________________________________________
+#_________________________________________________________________________________
 	
 
-#_____________________________________________________________________________________
+#_________________________________________________________________________________
 """
     TAS2EAS(v, h)
 
-Convert a True Air Speed value (in any units) to Equivalent Air Speed (in the same units) assuming ISA+0 conditions
+Convert a True Air Speed value (in any units) to Equivalent Air Speed (in the same units) assuming ISA+0 conditions.
 
 # Examples
 ```julia-repl
@@ -187,13 +189,14 @@ julia> TAS2EAS(100, 3000)
 ```
 """		
 TAS2EAS(v, h) = v * (ρ(h)/ρ(0))^.5
-#_____________________________________________________________________________________	
+#_________________________________________________________________________________	
 
-#_____________________________________________________________________________________
+	
+#_________________________________________________________________________________
 """
     EAS2TAS(v, h)
 
-Convert an Equivalent Air Speed value (in any units) to True Air Speed (in the same units) assuming ISA+0 conditions
+Convert an Equivalent Air Speed value (in any units) to True Air Speed (in the same units) assuming ISA+0 conditions.
 
 # Examples
 ```julia-repl
@@ -202,8 +205,9 @@ julia> EAS2TAS(100, 3000)
 ```
 """		
 EAS2TAS(v, h) = v * (ρ(h)/ρ(0))^-.5
-#_____________________________________________________________________________________	
+#_________________________________________________________________________________	
 
+	
 # **** TODO list ****
 	
 # viscosity
@@ -227,21 +231,152 @@ EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ······ EAS(k
 # ╔═╡ 29124d03-7ae5-49f1-8aff-272bc9f3d5cd
 md"Mach no =  $(round(M(TAS_op, Alt_op); digits = 2))  ······ Altitude (m) =  $(Alt_op) ······  Altitude (ft) =  $(round(Int,Alt_op*3.28084))     "
 
-# ╔═╡ 4077c54d-2a6e-4e80-975c-caf3825f1bc1
-Drag_parasitic(_TAS, _alt, _CD0, _Sw) = .5 * ρ(_alt) * _TAS^2 * CD0 * _Sw;
+# ╔═╡ bef4363e-34ef-499b-85cc-eead54a8ede2
+begin
 
-# ╔═╡ b0c37277-a103-4eef-8ec7-544a6a68cb94
-CL(_TAS, _alt, _Sw, _W) = _W / (.5 * ρ(_alt) * _TAS^2 * _Sw);
+# Aircraft aerodynamic coefficients, drag, power required and helper functions
+	
+	
+# NOTE: the text below, with exactly the format used, corresponds to the Julia "docstrings" standard. The documentation needs to be exactly on the line above the function definition. the "Live docs" button at the bottom right of Pluto will show the documentation of the function when the cursor is over the function name anywhere in the code
 
-# ╔═╡ 4116c5b3-64f8-4f31-8040-cc997ba57243
-Drag_induced(_TAS, _alt, _CD0, _Sw, _e, _W, _AR) = 	.5 * ρ(_alt) * _TAS^2 * CDi(CL(_TAS, _alt, _Sw, _W), _AR, _e) * _Sw;
+#_________________________________________________________________________________
+"""
+    Vs1gTAS(W, h, CLmax, Sw)
 
-# ╔═╡ 8cb8c86f-854b-4b7d-af43-197527f1df3e
-# Calculation of stall speed at the operating altitude	
-TAS_Vs1g_at_alt(_W, _h, _CLmax, _Sw) = ((_W)/(ρ(_h)*_CLmax*_Sw))^0.5 ;
+Calculate stall speed as TAS at 1g from weight (W) in Newtons, altitude (h) in meters, aircraft maximum lift coefficient (CL) and wing reference area (Sw) in m^2
+
+# Examples
+```julia-repl
+julia> Vs1gTAS(80000, 4000, 2.1, 20)
+48.241248922681834
+```
+"""
+Vs1gTAS(W, h, CLmax, Sw) = ((W)/(ρ(h)*CLmax*Sw))^0.5
+
+#_________________________________________________________________________________
+
+	
+#_________________________________________________________________________________
+"""
+    Vs1gEAS(W, CLmax, Sw)
+
+Calculate stall speed as EAS at 1g from weight (W) in Newtons, aircraft maximum lift coefficient (CL) and wing reference area (Sw) in m^2
+
+# Examples
+```julia-repl
+julia> Vs1gEAS(80000, 2.1, 20)
+39.432317676705956
+```
+"""
+Vs1gEAS(W, CLmax, Sw) = ((W)/(ρ(0)*CLmax*Sw))^0.5
+
+#_________________________________________________________________________________	
+	
+
+#_________________________________________________________________________________
+"""
+    CL(TAS, h, Sw, W) 
+
+Calculate aircraft lift coefficient (CL) from True Air Speed (TAS) in m/s, altitude (h) in m, wing reference area (Sw) in m^2 and aircraft weight (W) in Newtons
+	
+# Examples
+```julia-repl
+julia> CL(70, 4000, 70, 80000)
+0.569930962682486
+```
+"""
+CL(TAS, h, Sw, W) = W / (.5 * ρ(h) * TAS^2 * Sw)
+
+#_________________________________________________________________________________	
+	
+	
+#_________________________________________________________________________________
+"""
+    CDi(CL, AR, e)
+
+Calculate aircraft induced drag coefficient (CDi) from aircraft lift coefficient (CL), wing aspect ratio (AR) and Oswald factor (e)
+	
+# Examples
+```julia-repl
+julia> CDi(.6, 10, .9)
+0.012732395447351627
+```
+"""
+CDi(CL, AR, e) = CL^2 /(π * AR * e)
+
+#_________________________________________________________________________________	
+			
+
+#_________________________________________________________________________________
+"""
+    Drag_induced(TAS, h, Sw, e, W, AR)
+
+Calculate aircraft induced drag in Newtons from true air speed (TAS) in m/s, altitude (h) in meters, wing reference area (Sw) in m^2, Oswald factor (e), aircraft weight (W) in Newtons and wing aspect ratio (AR).
+	
+# Examples
+```julia-repl
+julia> Drag_induced(70, 4000, 40, .85, 60000, 10) 
+1680.7534663878039
+```
+"""
+Drag_induced(TAS, h, Sw, e, W, AR) = .5 * ρ(h) * TAS^2 * CDi(CL(TAS, h, Sw, W), AR, e) * Sw
+
+#_________________________________________________________________________________		
+	
+#_________________________________________________________________________________
+"""
+    Drag_parasitic(TAS, h, CD0, Sw)
+
+Calculate aircraft parasitic drag in Newtons from true air speed (TAS) in m/s, altitude (h) in meters, aircraft zero lift drag coefficient (CD0) and wing reference area (Sw) in m^2.
+	
+# Examples
+```julia-repl
+julia> Drag_parasitic(100, 6000, .03, 60)
+5929.753076455423
+```
+"""
+Drag_parasitic(TAS, h, CD0, Sw) = .5 * ρ(h) * TAS^2 * CD0 * Sw
+
+#_________________________________________________________________________________		
+
+#_________________________________________________________________________________
+"""
+    Thrust_required(TAS, h, CD0, Sw, e, W, AR)
+
+Calculate aircraft thrust required for steady and level flight (numerically equal to the total drag = Induced_drag + Parasitic_drag) in Newtons from true air speed (TAS) in m/s, altitude (h) in meters, aircraft zero lift drag coefficient (CD0), wing reference area (Sw) in m^2, Oswald factor (e), aircraft weight (W) in Newtons and wing aspect ratio (AR).
+	
+# Examples
+```julia-repl
+julia> Thrust_required(130, 2000, .02, 30, .85, 60000, 10)
+5629.534422614251
+```
+"""
+Thrust_required(TAS, h, CD0, Sw, e, W, AR) = Drag_parasitic(TAS, h, CD0, Sw) + Drag_induced(TAS, h, Sw, e, W, AR)
+
+#_________________________________________________________________________________	
+	
+	
+#_________________________________________________________________________________
+"""
+    Power_required(TAS, h, CD0, Sw, e, W, AR)
+
+Calculate aircraft power required for steady and level flight in W from true air speed (TAS) in m/s, altitude (h) in meters, aircraft zero lift drag coefficient (CD0), wing reference area (Sw) in m^2, Oswald factor (e), aircraft weight (W) in Newtons and wing aspect ratio (AR).
+	
+# Examples
+```julia-repl
+julia> Thrust_required(130, 2000, .02, 30, .85, 60000, 10)
+731839.4749398526
+```
+"""
+Power_required(TAS, h, CD0, Sw, e, W, AR) = TAS * Thrust_required(TAS, h, CD0, Sw, e, W, AR)
+#_________________________________________________________________________________	
+
+	
+	
+end;
 
 # ╔═╡ da899a54-70a9-4b46-b470-0c9890e5f2de
- Vs1g =   TAS_Vs1g_at_alt(Mass*9.81, Alt_op, CLmax, Sw)
+ Vs1g =   Vs1gTAS(Mass*9.81, Alt_op, CLmax, Sw)
 
 # ╔═╡ c755a5f9-8e92-4612-bfa1-ec543cd66d97
 md"EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ······ EAS(kt) =  $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5*1.94384; digits = 1)) ······  TASstall(m/s) =  $(round(Vs1g; digits = 1)              )         "
@@ -303,15 +438,15 @@ v1 = (Vs1g:1:350)   # Define series for x axis (from 0 to 10000 in steps of 500)
 	
 plot!(v1, Drag_parasitic.(v1, Alt_op, CD0, Sw), label = "D_parasitic (N)", linewidth =3)
 
-plot!(v1, Drag_induced.(v1, Alt_op, CD0, Sw, Oswald, Mass*9.81, AR) , label = "D_Induced(N)", linewidth =3)
+plot!(v1, Drag_induced.(v1, Alt_op, Sw, Oswald, Mass*9.81, AR) , label = "D_Induced(N)", linewidth =3)
 	
-plot!(v1, (Drag_parasitic.(v1, Alt_op, CD0, Sw) + Drag_induced.(v1, Alt_op, CD0, Sw, Oswald, Mass*9.81, AR))      , label = "Thrust Required (N)", linewidth =3)
+plot!(v1, (Drag_parasitic.(v1, Alt_op, CD0, Sw) + Drag_induced.(v1, Alt_op, Sw, Oswald, Mass*9.81, AR))      , label = "Thrust Required (N)", linewidth =3)
 	
 		
 # Final plot attributes
 xlabel!("TAS (m/s)")  # Set label for x axis
 ylabel!("Thrust required (N)")  # Set label for y axis (wrt: "with respect to")
-title!("Thrust required for steady and level flight")
+title!("Thrust required for steady and level flight at $(Alt_op) m")
 	
 plot!()  # Update plot with all of the above
 	
@@ -365,16 +500,12 @@ TableOfContents(aside=true)
 # ╟─22aa1e3d-5265-4e35-90bb-b146954efcf5
 # ╟─de07547d-4c70-4793-96f2-8dfb2379ac54
 # ╟─98eeefa9-5c98-4c1c-9d00-f494d3eb095a
-# ╟─d6f27d04-c041-4eee-a219-574dbed118fc
+# ╟─701806df-20fe-4181-b9d0-789f0d4a9944
 # ╟─508a4cb4-5b8b-40b2-a8bd-33f761a06281
 # ╠═887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 # ╟─ae28f744-625b-4fac-a8d2-c74855c752ea
-# ╠═4077c54d-2a6e-4e80-975c-caf3825f1bc1
-# ╠═4116c5b3-64f8-4f31-8040-cc997ba57243
-# ╠═b0c37277-a103-4eef-8ec7-544a6a68cb94
-# ╠═5ccc2dc6-7a26-4273-9a6d-1cafd1c7accb
-# ╠═8cb8c86f-854b-4b7d-af43-197527f1df3e
 # ╠═da899a54-70a9-4b46-b470-0c9890e5f2de
+# ╠═bef4363e-34ef-499b-85cc-eead54a8ede2
 # ╟─27007d5a-6f85-4ff4-9185-ab1e0df69eea
 # ╠═13b762d4-366a-47a5-ad77-a18e2b187b78
 # ╟─a57e579f-5c6e-48f6-a390-2d3b7b816372
