@@ -33,13 +33,14 @@ end
 PlutoUI.Resource("https://universidadeuropea.com/resources/static/img/ue-logo.png")
 
 # ╔═╡ ea326e95-0585-41f4-9cb2-da90b680f788
-md""" ## _*FLIGHT MECHANICS*_ """
+md""" ### _*FLIGHT MECHANICS:*_ STEADY AND LEVEL FLIGHT
+V0.0.1"""
 
 # ╔═╡ f384cb30-50af-4ad5-8986-2e11ed5a5e1d
-Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER. STEADY AND LEVEL FLIGHT V0.0.1", [md" This notebook is intended *solely for academic purposes*, It **should not be used** in real operational environments or for aircraft design purposes.  Report issues and find the latest version here  [📡](https://github.com/flt-acdesign/Low_speed_AC_performance)  "]))
+Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER.", [md" This notebook is intended *solely for academic purposes*, It **should not be used** in real operational environments or for aircraft design purposes.  Report issues and find the latest version here  [📡](https://github.com/flt-acdesign/Low_speed_AC_performance)  "]))
 
 # ╔═╡ 6f320fcf-346d-4260-ad63-36269b9de1eb
-md"### Set Operating point for calculations ✈  "
+md"### Set Operating Point for calculations ✈  "
 
 # ╔═╡ addf6fa0-3335-4250-9dcb-eb9e3e87b4af
 md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))  ······   Altitude(m) =  $(@bind Alt_op NumberField(0:100:11000, default=4000))      "
@@ -48,25 +49,22 @@ md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, defau
 md"### Define aircraft parameters and status   "
 
 # ╔═╡ 22aa1e3d-5265-4e35-90bb-b146954efcf5
-md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(1:1:1000, default=20))     Aircraft maximum lift coefficient (**CLmax**) =  $(@bind CLmax NumberField(0.1:.1:7, default=2))      "
+md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(1:1:1000, default=20))     ······Aircraft maximum lift coefficient (**CLmax**) =  $(@bind CLmax NumberField(0.1:.1:7, default=2))      "
 
 # ╔═╡ de07547d-4c70-4793-96f2-8dfb2379ac54
 md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.1:10:600000, default=8000)) ······ **CD0** =  $(@bind CD0 NumberField(0.0:.005:.1, default=.02))   "
 
 # ╔═╡ 98eeefa9-5c98-4c1c-9d00-f494d3eb095a
-md"  Aircraft weight in **N** = $(round(Int, Mass*9.81)) ···· Wing Loading (Kgf/m^2) = $(round((Mass/Sw); digits=1))   "
-
-# ╔═╡ 701806df-20fe-4181-b9d0-789f0d4a9944
-md" AC/DC (parasit.) = $(round(Int, CD0*10000))  "
+md"  Aircraft weight in Newton = $(round(Int, Mass*9.81)) ···· Wing Loading (Kgf/m^2) = $(round((Mass/Sw); digits=1))   "
 
 # ╔═╡ 508a4cb4-5b8b-40b2-a8bd-33f761a06281
-md" e =  $(@bind Oswald NumberField(0.1:.1:1.5, default=.85))  Aspect Ratio =  $(@bind AR NumberField(1:1:30, default=10))  "
+md" **e** =  $(@bind Oswald NumberField(0.1:.1:1.5, default=.85)) ······ **Aspect Ratio** =  $(@bind AR NumberField(1:1:30, default=10))  "
 
 # ╔═╡ ae28f744-625b-4fac-a8d2-c74855c752ea
 md"### Aircraft Aerodynamic functions"
 
 # ╔═╡ 27007d5a-6f85-4ff4-9185-ab1e0df69eea
-md"### ISA+0 Atmosphere functions"
+md"### ISA+0 Atmosphere and units conversion functions"
 
 # ╔═╡ 13b762d4-366a-47a5-ad77-a18e2b187b78
 begin
@@ -75,6 +73,25 @@ begin
 	
 	
 # NOTE: the text below, with exactly the format used, corresponds to the Julia "docstrings" standard. The documentation needs to be exactly on the line above the function definition. the "Live docs" button at the bottom right of Pluto will show the documentation of the function when the cursor is over the function name anywhere in the code
+
+	
+#_________________________________________________________________________________
+"""
+    g()
+
+Acceleration of gravity in m/s^2 
+
+
+# Examples
+```julia-repl
+julia> g()
+9.81
+```
+"""
+g() = 9.81
+
+#_________________________________________________________________________________	
+	
 	
 #_________________________________________________________________________________
 """
@@ -210,6 +227,25 @@ julia> EAS2TAS(100, 3000)
 EAS2TAS(v, h) = v * (ρ(h)/ρ(0))^-.5
 #_________________________________________________________________________________	
 
+
+#_________________________________________________________________________________
+"""
+    ms2kt(v)
+
+Convert a speed v from meters per second (m/s) to knots (kt)
+
+# Examples
+```julia-repl
+julia> ms2kt(1)
+1.94384449
+```
+"""		
+ms2kt(v) = 	v*1.94384449
+#_________________________________________________________________________________	
+	
+
+	
+	
 	
 # **** TODO list ****
 	
@@ -228,8 +264,8 @@ EAS2TAS(v, h) = v * (ρ(h)/ρ(0))^-.5
 end	;
 
 # ╔═╡ 19816267-988f-45d5-8c39-bedc11d76e12
-md"TAS(m/s) = $(TAS_op) ······ TAS(kt) = $(round(TAS_op*1.94384; digits = 1)) ······ 
-EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ······ EAS(kt) =  $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5*1.94384; digits = 1))"
+md"TAS(m/s) = $(TAS_op) ······ TAS(kt) = $(round(ms2kt(TAS_op); digits = 1)) ······ 
+EAS(m/s) = $(round(TAS2EAS(TAS_op, Alt_op); digits = 1)) ······ EAS(kt) =  $(round(ms2kt(TAS2EAS(TAS_op, Alt_op));  digits = 1))"
 
 # ╔═╡ 29124d03-7ae5-49f1-8aff-272bc9f3d5cd
 md"Mach no =  $(round(M(TAS_op, Alt_op); digits = 2))  ······ Altitude (m) =  $(Alt_op) ······  Altitude (ft) =  $(round(Int,Alt_op*3.28084))     "
@@ -308,7 +344,25 @@ julia> CDi(.6, 10, .9)
 CDi(CL, AR, e) = CL^2 /(π * AR * e)
 
 #_________________________________________________________________________________	
-			
+
+	
+#_________________________________________________________________________________
+"""
+    LD_max(CD0, AR, e)
+
+Calculate aircraft maximum Lift to Drag ratio (L/D max) from aircraft zero lift drag coefficient (CD0), wing aspect ratio (AR) and Oswald factor (e)
+	
+# Examples
+```julia-repl
+julia> LD_max(0.02, 10, .9)
+26.58680776358274
+```
+"""
+LD_max(CD0, AR, e) = (π*e*AR)^.5 / ( 2*CD0^.5 )
+#_________________________________________________________________________________	
+	
+	
+	
 
 #_________________________________________________________________________________
 """
@@ -374,32 +428,69 @@ julia> Thrust_required(130, 2000, .02, 30, .85, 60000, 10)
 Power_required(TAS, h, CD0, Sw, e, W, AR) = TAS * Thrust_required(TAS, h, CD0, Sw, e, W, AR)
 #_________________________________________________________________________________	
 
+
+	
+#_________________________________________________________________________________
+"""
+    VMD(CD0, Sw, e, W, AR, h)
+
+Calculate minimum drag speed (TAS) in m/s from aircraft zero lift drag coefficient (CD0), wing reference area (Sw) in m^2, Oswald factor (e), aircraft weight (W) in Newtons, wing aspect ratio (AR) and altitude (h) in meters.
+		
+# Examples
+```julia-repl
+julia> VMD(0.02, 20, .8, 80000, 10, 1000)
+100.7593963754324
+```
+"""
+VMD(CD0, Sw, e, W, AR, h) = (4/(π*AR*e*CD0))^.25*(W/(Sw*ρ(h)))^.5
+#_________________________________________________________________________________		
+	
+	
+	
+	
+	
 	
 	
 end;
 
-# ╔═╡ da899a54-70a9-4b46-b470-0c9890e5f2de
- Vs1g =   Vs1gTAS(Mass*9.81, Alt_op, CLmax, Sw)
+# ╔═╡ 304934d3-cf2e-443c-8c42-74940e584160
+begin
+# calculate global variables of aircraft flight conditions
+	
+TASstall = 	Vs1gTAS(Mass*9.81, Alt_op, CLmax, Sw) # Stall speed TAS in m/s
+EASstall = TAS2EAS(TASstall,  Alt_op) # Stall speed EAS in m/s
 
-# ╔═╡ c755a5f9-8e92-4612-bfa1-ec543cd66d97
-md"EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ······ EAS(kt) =  $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5*1.94384; digits = 1)) ······  TASstall(m/s) =  $(round(Vs1g; digits = 1)              )         "
+AC_CDi = CDi(CL(TAS_op, Alt_op, Sw, Mass*g()) , AR, Oswald) # Aircraft induced drag coefficient
+AC_CD = AC_CDi + CD0  # Total aircraft drag coefficient	
+	
+AC_CL = CL(TAS_op, Alt_op, Sw, Mass*g()) # Aircraft lift coefficient
+
+AC_VMD = VMD(CD0, Sw, Oswald, Mass*g(), AR, Alt_op) # Aircraft minimum drag speed in m/s (TAS)	
+
+AC_min_thrust_required = Thrust_required(AC_VMD, Alt_op, CD0, Sw, Oswald, Mass*g(), AR)	
+
+	
+AC_LDmax = LD_max(CD0, AR, Oswald)  # Aircraft L/D max	
+	
+	
+end;
 
 # ╔═╡ ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
 begin
 
 TAS_range = 1:5:360  # Define the range of TAS for the x axis (from 1 to 360 in steps of 5)
-h_range = [1:250:10000...] # Define the range of altitudes for the y axis (frfom 1 to 10000 metres in steps of 250m(
+h_range = [1:250:11600...] # Define the range of altitudes for the y axis (frfom 1 to 10000 metres in steps of 250m(
 
 	
 # Initialize plot	
-plot( xticks = 0:50:400, yticks = 0:500:11000, leg=true,
+plot( xticks = 0:50:400, yticks = 0:500:11500, leg=true,
 	  grid = (:xy, :olivedrab, :dot, 1, .8) , c= :roma) 
 
 # Draw a contout plot with the dynamic pressure as a function of TAS and Altitude	
 plot!(contour(TAS_range, h_range, q, fill = true, c= :coolwarm) )
 
 # Draw a boundary showing the stall speed (TAS) as a function of altitude
-plot!(((9.81*Mass)./(ρ.(h_range)*CLmax*Sw)).^.5, h_range, label = "Stall speed", lw= 3)
+plot!(((g()*Mass)./(ρ.(h_range)*CLmax*Sw)).^.5, h_range, label = "Stall speed", lw= 3)
 
 # Draw a reference line for Mach = 0.5 (below it the flow can be assumed incompressible - although there is no incompressible flow in reality). Below, draw additional Mach boundaries as lines for reference
 plot!((0.5.*a.(h_range))  , h_range, label = "M = 0.5", lw= 1)
@@ -409,17 +500,18 @@ plot!((1.0.*a.(h_range))  , h_range, label = "M = 1", lw= 3)
 # Draw a circle showing the operating point under study
 scatter!([TAS_op],[Alt_op], label = "Operating Point", ms = 4)	
 # Draw a label on the operating point
-annotate!([TAS_op]  ,[Alt_op+300], Plots.text("✈", 14, (TAS_op > Vs1g ? :yellow : :red), :left))
+annotate!([TAS_op]  ,[Alt_op+300], Plots.text("✈", 14, (TAS_op > TASstall ? :yellow : :red), :left))
 # Draw values of the operating point	
 annotate!([TAS_op]  ,[Alt_op-300], Plots.text("TAS(kt)= "*string(TAS_op), 8, :yellow, :left))	
-annotate!([TAS_op]  ,[Alt_op-650], Plots.text("h(m)= "*string(Alt_op), 8, :yellow, :left))		
-annotate!([TAS_op]  ,[Alt_op-1000], Plots.text("q(Pa)= "*string(round(Int,q(TAS_op, Alt_op))), 8, :yellow, :left))			
+annotate!([TAS_op]  ,[Alt_op-700], Plots.text("h(m)= "*string(Alt_op), 8, :yellow, :left))		
+annotate!([TAS_op]  ,[Alt_op-1100], Plots.text("q(Pa)= "*string(round(Int,q(TAS_op, Alt_op))), 8, :yellow, :left))
+annotate!([TAS_op]  ,[Alt_op-1500], Plots.text("CL= "*string(round(AC_CL; digits = 2)), 8, :yellow, :left))	
 	
 
 # Draw a circle showing the stall speed at the operating altitude
-scatter!([Vs1g],[Alt_op], label = "Stall speed kt(TAS)", ms = 4)	
+scatter!([TASstall],[Alt_op], label = "Stall speed kt(TAS)", ms = 4)	
 # Draw a label with the stall speed at this altitude, rounded to 1 decimal place and converted to knots (1m/2 = 1.94384 kt)
-annotate!([Vs1g+15]  ,[Alt_op+200], Plots.text(string(round((Vs1g*1.94384); digits=1))*" kt", 8, :orange, :center))
+annotate!([TASstall+15]  ,[Alt_op+200], Plots.text(string(round((ms2kt(TASstall)); digits=1))*" kt", 8, :orange, :center))
 	
 # Define plot name and axis labels	
 xlabel!("TAS (m/s)")  # Set label for x axis
@@ -430,13 +522,19 @@ plot!(size=(680, 400))	# Update plot attributes
 
 end
 
+# ╔═╡ 701806df-20fe-4181-b9d0-789f0d4a9944
+md" Aircraft CDi(DC) = $(round(Int, 10000*AC_CDi)) ······ Aircraft CD0(DC) = $(round(Int, 10000*CD0))  ······ Aircraft CD(DC) = $(round(Int, 10000*AC_CD)) "
+
+# ╔═╡ c755a5f9-8e92-4612-bfa1-ec543cd66d97
+md" Stall speeds ······ TAS =  $(round(TASstall; digits = 1))(m/s)    $(round(ms2kt(TASstall); digits = 1))(kt)               ······  EAS =  $(round(EASstall; digits = 1)) (m/s)  $(round(ms2kt(EASstall); digits = 1))   (kt)          "
+
 # ╔═╡ 887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 begin
 	
-plot( xticks = 10:20:350, yticks = 0:5000:50000, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
+plot( xticks = 10:20:350, yticks = 0:100000:5000000, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
 	
 	# Plotting the data
-v1 = (Vs1g:1:350)   # Define series for x axis (from 0 to 10000 in steps of 500)
+v1 = (TASstall:1:350)   # Define series for x axis (from 0 to 10000 in steps of 500)
 
 	
 plot!(v1, Drag_parasitic.(v1, Alt_op, CD0, Sw), label = "D_parasitic (N)", linewidth =3)
@@ -444,12 +542,48 @@ plot!(v1, Drag_parasitic.(v1, Alt_op, CD0, Sw), label = "D_parasitic (N)", linew
 plot!(v1, Drag_induced.(v1, Alt_op, Sw, Oswald, Mass*9.81, AR) , label = "D_Induced(N)", linewidth =3)
 	
 plot!(v1, (Drag_parasitic.(v1, Alt_op, CD0, Sw) + Drag_induced.(v1, Alt_op, Sw, Oswald, Mass*9.81, AR))      , label = "Thrust Required (N)", linewidth =3)
+
+	
+# Draw a circle showing the minimum thrust required
+scatter!([AC_VMD],[AC_min_thrust_required], label = "Min. thrust req.", ms = 4)		
+
+annotate!([AC_VMD]  ,[AC_min_thrust_required*1.1], Plots.text("T = "*string(round(Int, AC_min_thrust_required))*" N", 8, :black, :left))	
+
+annotate!([AC_VMD]  ,[AC_min_thrust_required*1.2], Plots.text("TAS = "*string(round(Int, AC_VMD))*" m/s", 8, :black, :left))
+	
 	
 		
 # Final plot attributes
 xlabel!("TAS (m/s)")  # Set label for x axis
 ylabel!("Thrust required (N)")  # Set label for y axis (wrt: "with respect to")
 title!("Thrust required for steady and level flight at $(Alt_op) m")
+	
+plot!()  # Update plot with all of the above
+	
+end
+
+# ╔═╡ 2b985fdb-f11c-4d23-8708-516fc9a64cf4
+begin
+	
+plot( xticks = 10:20:350, yticks = 0:1:50, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
+	
+# Plotting the data
+v2 = (TASstall:1:350)   # Define series for x axis (from 0 to 10000 in steps of 500)
+
+plot!(v2, (CL.(v2, Alt_op, Sw, Mass*g()))./(  (CD0 .+ CDi.(CL.(v2, Alt_op, Sw, Mass*g() ) , AR, Oswald))    )       , label = "L/D", linewidth =3)
+
+# Draw a circle showing the minimum thrust required
+scatter!([AC_VMD],[AC_LDmax], label = "L/D max", ms = 4)	
+
+annotate!([AC_VMD]  ,[AC_LDmax*.96], Plots.text("L/Dmax= "*string(round(Int, AC_LDmax)), 8, :black, :left))	
+
+annotate!([AC_VMD]  ,[AC_LDmax*0.92], Plots.text("@TAS = "*string(round(Int, AC_VMD))*" m/s", 8, :black, :left))
+	
+		
+# Final plot attributes
+xlabel!("TAS (m/s)")  # Set label for x axis
+ylabel!("L/D")  # Set label for y axis (wrt: "with respect to")
+title!("Aircraft Lift to Drag ratio")
 	
 plot!()  # Update plot with all of the above
 	
@@ -498,20 +632,21 @@ TableOfContents(aside=true)
 # ╟─addf6fa0-3335-4250-9dcb-eb9e3e87b4af
 # ╟─19816267-988f-45d5-8c39-bedc11d76e12
 # ╟─29124d03-7ae5-49f1-8aff-272bc9f3d5cd
-# ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
 # ╟─ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
+# ╟─304934d3-cf2e-443c-8c42-74940e584160
 # ╟─d79c73d4-9889-4feb-8eb8-58583dfcc04c
 # ╟─22aa1e3d-5265-4e35-90bb-b146954efcf5
 # ╟─de07547d-4c70-4793-96f2-8dfb2379ac54
 # ╟─98eeefa9-5c98-4c1c-9d00-f494d3eb095a
-# ╟─701806df-20fe-4181-b9d0-789f0d4a9944
 # ╟─508a4cb4-5b8b-40b2-a8bd-33f761a06281
-# ╠═887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
+# ╟─701806df-20fe-4181-b9d0-789f0d4a9944
+# ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
+# ╟─887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
+# ╟─2b985fdb-f11c-4d23-8708-516fc9a64cf4
 # ╟─ae28f744-625b-4fac-a8d2-c74855c752ea
-# ╠═da899a54-70a9-4b46-b470-0c9890e5f2de
-# ╠═bef4363e-34ef-499b-85cc-eead54a8ede2
+# ╟─bef4363e-34ef-499b-85cc-eead54a8ede2
 # ╟─27007d5a-6f85-4ff4-9185-ab1e0df69eea
-# ╠═13b762d4-366a-47a5-ad77-a18e2b187b78
+# ╟─13b762d4-366a-47a5-ad77-a18e2b187b78
 # ╟─a57e579f-5c6e-48f6-a390-2d3b7b816372
 # ╟─5afceffa-6e23-422e-81ee-4aee76899d93
 # ╟─7693366f-2c0c-4be3-be85-e2d7d7591977
