@@ -29,23 +29,23 @@ begin
 	using Statistics, LinearAlgebra  # standard libraries
 end
 
-# ╔═╡ caaadf91-6ddd-4933-bf1a-98fb11ab0fec
-TableOfContents(aside=true)
+# ╔═╡ f384cb30-50af-4ad5-8986-2e11ed5a5e1d
+Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER V0.0.1", [md" This notebook is intended *solely for academic purposes*, It **should not be used** in real operational environments or for aircraft design purposes.   [*Report issues -and find the latest version- in this link*](https://github.com/flt-acdesign/Low_speed_AC_performance)  "]))
 
 # ╔═╡ 6f320fcf-346d-4260-ad63-36269b9de1eb
-md"### Set Operating point for calculations   "
+md"### Set Operating point for calculations ✈  "
 
 # ╔═╡ afa9f7ee-d8e5-426c-9df0-3a05641d8fbb
-md" Operating Point:       TAS(m/s) $(@bind TAS_op Slider(1:1:340))  Alt(m) $(@bind Alt_op Slider(0:100:11000)) "
+md" Operating Point:       TAS(m/s) $(@bind TAS_op Slider(1:1:340))  Alt(m) $(@bind Alt_op Slider(0:50:11000)) "
 
 # ╔═╡ d79c73d4-9889-4feb-8eb8-58583dfcc04c
 md"### Define aircraft parameters and status   "
 
 # ╔═╡ 22aa1e3d-5265-4e35-90bb-b146954efcf5
-md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(1:10:1000, default=20))     Aircraft maximum lift coefficient (CLmax) =  $(@bind CLmax NumberField(0.1:.1:7, default=2))      "
+md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(1:1:1000, default=20))     Aircraft maximum lift coefficient (**CLmax**) =  $(@bind CLmax NumberField(0.1:.1:7, default=2))      "
 
 # ╔═╡ de07547d-4c70-4793-96f2-8dfb2379ac54
-md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.1:10:600000, default=8000)) ______ CD0 =  $(@bind CD0 NumberField(0.0:.005:.1, default=.04))   "
+md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.1:10:600000, default=8000)) ······ **CD0** =  $(@bind CD0 NumberField(0.0:.005:.1, default=.02))   "
 
 # ╔═╡ 98eeefa9-5c98-4c1c-9d00-f494d3eb095a
 md"  Aircraft weight in **N** = $(round(Int, Mass*9.81)) _____  AC/DC = $(round(Int, CD0*10000))    "
@@ -71,6 +71,10 @@ md" ρ(h) :  ISA+0 Density in Kg/m^3 as a function of altitude (h) with h in met
 # ╔═╡ 13b762d4-366a-47a5-ad77-a18e2b187b78
 ρ(h) = 1.225 * (1-0.0000226 * h) ^4.256;
 
+# ╔═╡ 19816267-988f-45d5-8c39-bedc11d76e12
+md"TAS(m/s) = $(TAS_op) ······ TAS(kt) = $(round(TAS_op*1.94384; digits = 1)) ······ 
+EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ······ EAS(kt) =  $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5*1.94384; digits = 1))"
+
 # ╔═╡ 4077c54d-2a6e-4e80-975c-caf3825f1bc1
 Drag_parasitic(_TAS, _alt, _CD0, _Sw) = .5 * ρ(_alt) * _TAS^2 * CD0 * _Sw;
 
@@ -88,7 +92,7 @@ TAS_Vs1g_at_alt(_W, _h, _CLmax, _Sw) = ((_W)/(ρ(_h)*_CLmax*_Sw))^0.5 ;
  Vs1g =   TAS_Vs1g_at_alt(Mass*9.81, Alt_op, CLmax, Sw)
 
 # ╔═╡ c755a5f9-8e92-4612-bfa1-ec543cd66d97
-md"EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ___ EAS(kt) =  $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5*1.94384; digits = 1)) ____  TASstall(m/s) =  $(round(Vs1g; digits = 1))         "
+md"EAS(m/s) = $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5; digits = 1)) ······ EAS(kt) =  $(round(TAS_op*(ρ(Alt_op)/ρ(0))^.5*1.94384; digits = 1)) ······  TASstall(m/s) =  $(round(Vs1g; digits = 1)              )         "
 
 # ╔═╡ 887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 begin
@@ -149,11 +153,11 @@ begin
 end
 
 # ╔═╡ 5afceffa-6e23-422e-81ee-4aee76899d93
-md" > Graphics showing relative variation with respect to Mean Sea Level (MSL) values of pressure, density and temperature with altitude in ISA+0 conditions up to 10000 metres of altitude"
+md" > Graphics showing relative variation with respect to Mean Sea Level (MSL) values of pressure, density and temperature with altitude in ISA+0 conditions in troposphere"
 
 # ╔═╡ 7693366f-2c0c-4be3-be85-e2d7d7591977
 md"""
-> [***For help on plots follow this link***](http://docs.juliaplots.org/latest/tutorial/) (and then come back to the Pluto notebook)
+> [***For help with plots follow this link***](http://docs.juliaplots.org/latest/tutorial/) (and then come back to the Pluto notebook)
 """
 
 # ╔═╡ 3f5be5de-30eb-4fb3-b598-41fba6be075a
@@ -193,10 +197,12 @@ plot!((1.0.*a.(h_range))  , h_range, label = "M = 1", lw= 3)
 # Draw a circle showing the operating point under study
 scatter!([TAS_op],[Alt_op], label = "Operating Point", ms = 4)	
 # Draw a label on the operating point
-annotate!([TAS_op]  ,[Alt_op+200], Plots.text("OP", 9, :yellow, :left))
+annotate!([TAS_op]  ,[Alt_op+300], Plots.text("✈", 14, (TAS_op > Vs1g ? :yellow : :red), :left))
 # Draw values of the operating point	
 annotate!([TAS_op]  ,[Alt_op-300], Plots.text("TAS(kt)= "*string(TAS_op), 8, :yellow, :left))	
-annotate!([TAS_op]  ,[Alt_op-600], Plots.text("h(m)= "*string(Alt_op), 8, :yellow, :left))		
+annotate!([TAS_op]  ,[Alt_op-650], Plots.text("h(m)= "*string(Alt_op), 8, :yellow, :left))		
+annotate!([TAS_op]  ,[Alt_op-1000], Plots.text("q(Pa)= "*string(round(Int,q(TAS_op, Alt_op))), 8, :yellow, :left))			
+	
 
 # Draw a circle showing the stall speed at the operating altitude
 scatter!([Vs1g],[Alt_op], label = "Stall speed kt(TAS)", ms = 4)	
@@ -218,19 +224,23 @@ md" M(TAS,h) :  Mach number for a given *True Air Speed (TAS)* in m/s and altitu
 # ╔═╡ 867bbb25-27f9-46af-8f61-46877f77d8ef
 M(TAS, h) = TAS / a(h) ;
 
-# ╔═╡ 5502a5c3-3ea4-452c-9704-e49e6434aa40
-md"TAS(m/s) = $(TAS_op) ___ TAS(kt) = $(round(TAS_op*1.94384; digits = 1)) ___ Mach no =  $(round(M(TAS_op, Alt_op); digits = 2))  ___ Altitude (m) =  $(Alt_op)    "
+# ╔═╡ 29124d03-7ae5-49f1-8aff-272bc9f3d5cd
+md"Mach no =  $(round(M(TAS_op, Alt_op); digits = 2))  ······ Altitude (m) =  $(Alt_op) ······  Altitude (ft) =  $(round(Int,Alt_op*3.28084))     "
 
 # ╔═╡ 8b1ccfb8-6b6c-4caa-823f-b16b59eee635
 md" The code below this point is to set-up the notebook"
 
+# ╔═╡ caaadf91-6ddd-4933-bf1a-98fb11ab0fec
+TableOfContents(aside=true)
+
 # ╔═╡ Cell order:
-# ╟─caaadf91-6ddd-4933-bf1a-98fb11ab0fec
+# ╟─f384cb30-50af-4ad5-8986-2e11ed5a5e1d
 # ╟─6f320fcf-346d-4260-ad63-36269b9de1eb
 # ╟─afa9f7ee-d8e5-426c-9df0-3a05641d8fbb
-# ╟─5502a5c3-3ea4-452c-9704-e49e6434aa40
+# ╟─19816267-988f-45d5-8c39-bedc11d76e12
+# ╟─29124d03-7ae5-49f1-8aff-272bc9f3d5cd
 # ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
-# ╟─ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
+# ╠═ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
 # ╟─d79c73d4-9889-4feb-8eb8-58583dfcc04c
 # ╟─22aa1e3d-5265-4e35-90bb-b146954efcf5
 # ╟─de07547d-4c70-4793-96f2-8dfb2379ac54
@@ -254,7 +264,7 @@ md" The code below this point is to set-up the notebook"
 # ╠═378f5ff0-9854-11eb-03ba-b79cd02a308b
 # ╟─a57e579f-5c6e-48f6-a390-2d3b7b816372
 # ╟─5afceffa-6e23-422e-81ee-4aee76899d93
-# ╟─7693366f-2c0c-4be3-be85-e2d7d7591977
+# ╠═7693366f-2c0c-4be3-be85-e2d7d7591977
 # ╟─3f5be5de-30eb-4fb3-b598-41fba6be075a
 # ╠═418c035e-6342-464c-9f7b-2c47767a1ede
 # ╟─a50e01cb-8585-4f2d-94d6-1fef73a35660
@@ -262,4 +272,5 @@ md" The code below this point is to set-up the notebook"
 # ╟─b99e3354-b1c9-4ba9-b3d0-d2ea5450c7c5
 # ╠═867bbb25-27f9-46af-8f61-46877f77d8ef
 # ╟─8b1ccfb8-6b6c-4caa-823f-b16b59eee635
+# ╟─caaadf91-6ddd-4933-bf1a-98fb11ab0fec
 # ╟─20454a26-4719-4c30-9e46-483c27eb630d
