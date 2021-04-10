@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.14.0
+# v0.14.1
 
 using Markdown
 using InteractiveUtils
@@ -29,14 +29,17 @@ begin
 	using Statistics, LinearAlgebra  # standard libraries
 end
 
+# ╔═╡ 15ca5568-eb8a-40dc-9c7a-47144555e58a
+
+
 # ╔═╡ f384cb30-50af-4ad5-8986-2e11ed5a5e1d
-Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER V0.0.1", [md" This notebook is intended *solely for academic purposes*, It **should not be used** in real operational environments or for aircraft design purposes.  Report issues and find the latest version here  [📡](https://github.com/flt-acdesign/Low_speed_AC_performance)  "]))
+Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER. STEADY AND LEVEL FLIGHT V0.0.1", [md" This notebook is intended *solely for academic purposes*, It **should not be used** in real operational environments or for aircraft design purposes.  Report issues and find the latest version here  [📡](https://github.com/flt-acdesign/Low_speed_AC_performance)  "]))
 
 # ╔═╡ 6f320fcf-346d-4260-ad63-36269b9de1eb
 md"### Set Operating point for calculations ✈  "
 
 # ╔═╡ addf6fa0-3335-4250-9dcb-eb9e3e87b4af
-md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))  ······   Altitude =  $(@bind Alt_op NumberField(0:100:11000, default=400))      "
+md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))  ······   Altitude(m) =  $(@bind Alt_op NumberField(0:100:11000, default=400))      "
 
 # ╔═╡ d79c73d4-9889-4feb-8eb8-58583dfcc04c
 md"### Define aircraft parameters and status   "
@@ -65,11 +68,67 @@ CDi(_CL, _AR, _e) = _CL^2 /(π * _AR * _e);
 # ╔═╡ 27007d5a-6f85-4ff4-9185-ab1e0df69eea
 md"### ISA+0 Atmosphere functions"
 
-# ╔═╡ 2a6af729-1805-4222-b134-592d25ff1aa5
-md" ρ(h) :  ISA+0 Density in Kg/m^3 as a function of altitude (h) with h in meters (Troposphere). Note ρ is written with `\rho<tab>`"
-
 # ╔═╡ 13b762d4-366a-47a5-ad77-a18e2b187b78
-ρ(h) = 1.225 * (1-0.0000226 * h) ^4.256;
+begin
+
+# ISA+0 Atmosphere functions
+	
+	
+# NOTE: the text below, with exactly the format used, corresponds to the Julia "docstrings" standard. The documentation needs to be exactly on the line above definging the function. the "Live docs" button at the bottom right of Pluto will show the documentation of the function when the cursor is over the function name anywhere in the code
+	
+#_____________________________________________________________________________________
+"""
+    ρ(h)
+
+ISA+0 Density in Kg/m^3 as a function of altitude (h) with h in meters (Troposphere). 
+
+Note ρ is written with \\rho<tab>
+
+# Examples
+```julia-repl
+julia> ρ(0)
+1.225
+```
+"""
+ρ(h) = 1.225 * (1-0.0000226 * h) ^4.256
+
+#_____________________________________________________________________________________
+	
+	
+#_____________________________________________________________________________________
+
+"""
+    p(h)
+
+ISA+0 Pressure in Pa as a function of altitude (h) with h in meters (Troposphere) 
+
+# Examples
+```julia-repl
+julia> p(0)
+101325
+```
+"""	
+p(h) = 101325 * (1-0.0000226 * h) ^5.256
+	
+#_____________________________________________________________________________________	
+	
+#_____________________________________________________________________________________
+"""
+    T(h)
+
+ISA+0 Temperature in K as a function of altitude (h) with h in meters (Troposphere)
+
+# Examples
+```julia-repl
+julia> T(0)
+288.15
+```
+"""		
+T(h) = 288.15 -6.5 * h /1000
+	
+#_____________________________________________________________________________________	
+	
+end	;
 
 # ╔═╡ 19816267-988f-45d5-8c39-bedc11d76e12
 md"TAS(m/s) = $(TAS_op) ······ TAS(kt) = $(round(TAS_op*1.94384; digits = 1)) ······ 
@@ -119,18 +178,6 @@ plot!()  # Update plot with all of the above
 	
 end
 
-# ╔═╡ 8ce71cb5-4f4e-4e02-9999-48cadc5a5e59
-md" p(h) :  ISA+0 Pressure in Pa as a function of altitude (h) with h in meters (Troposphere)"
-
-# ╔═╡ 63865400-7a48-4c70-b7ca-1e2c6f4456cb
-p(h) = 101325 * (1-0.0000226 * h) ^5.256;
-
-# ╔═╡ c1af0de6-87f8-4def-b948-e48f1c550310
-md" T(h) :  ISA+0 Temperature in K as a function of altitude (h) with h in meters (Troposphere)"
-
-# ╔═╡ 378f5ff0-9854-11eb-03ba-b79cd02a308b
-T(h) = 288.15 -6.5 * h /1000;
-
 # ╔═╡ a57e579f-5c6e-48f6-a390-2d3b7b816372
 begin
 	
@@ -153,7 +200,7 @@ begin
 end
 
 # ╔═╡ 5afceffa-6e23-422e-81ee-4aee76899d93
-md" > Graphics showing relative variation with respect to Mean Sea Level (MSL) values of pressure, density and temperature with altitude in ISA+0 conditions in troposphere"
+md"  Graphics showing relative variation with respect to Mean Sea Level (MSL) values of pressure, density and temperature with altitude in ISA+0 conditions in troposphere"
 
 # ╔═╡ 7693366f-2c0c-4be3-be85-e2d7d7591977
 md"""
@@ -234,6 +281,7 @@ md" The code below this point is to set-up the notebook"
 TableOfContents(aside=true)
 
 # ╔═╡ Cell order:
+# ╠═15ca5568-eb8a-40dc-9c7a-47144555e58a
 # ╟─f384cb30-50af-4ad5-8986-2e11ed5a5e1d
 # ╟─6f320fcf-346d-4260-ad63-36269b9de1eb
 # ╟─addf6fa0-3335-4250-9dcb-eb9e3e87b4af
@@ -242,7 +290,7 @@ TableOfContents(aside=true)
 # ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
 # ╟─ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
 # ╟─d79c73d4-9889-4feb-8eb8-58583dfcc04c
-# ╠═22aa1e3d-5265-4e35-90bb-b146954efcf5
+# ╟─22aa1e3d-5265-4e35-90bb-b146954efcf5
 # ╟─de07547d-4c70-4793-96f2-8dfb2379ac54
 # ╟─98eeefa9-5c98-4c1c-9d00-f494d3eb095a
 # ╟─d6f27d04-c041-4eee-a219-574dbed118fc
@@ -256,15 +304,10 @@ TableOfContents(aside=true)
 # ╠═8cb8c86f-854b-4b7d-af43-197527f1df3e
 # ╠═da899a54-70a9-4b46-b470-0c9890e5f2de
 # ╟─27007d5a-6f85-4ff4-9185-ab1e0df69eea
-# ╟─2a6af729-1805-4222-b134-592d25ff1aa5
 # ╠═13b762d4-366a-47a5-ad77-a18e2b187b78
-# ╟─8ce71cb5-4f4e-4e02-9999-48cadc5a5e59
-# ╠═63865400-7a48-4c70-b7ca-1e2c6f4456cb
-# ╟─c1af0de6-87f8-4def-b948-e48f1c550310
-# ╠═378f5ff0-9854-11eb-03ba-b79cd02a308b
 # ╟─a57e579f-5c6e-48f6-a390-2d3b7b816372
 # ╟─5afceffa-6e23-422e-81ee-4aee76899d93
-# ╠═7693366f-2c0c-4be3-be85-e2d7d7591977
+# ╟─7693366f-2c0c-4be3-be85-e2d7d7591977
 # ╟─3f5be5de-30eb-4fb3-b598-41fba6be075a
 # ╠═418c035e-6342-464c-9f7b-2c47767a1ede
 # ╟─a50e01cb-8585-4f2d-94d6-1fef73a35660
