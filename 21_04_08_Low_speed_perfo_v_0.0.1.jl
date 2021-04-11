@@ -45,7 +45,7 @@ Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER.", [md" This notebook is i
 md"### Set Operating Point for calculations ✈  "
 
 # ╔═╡ addf6fa0-3335-4250-9dcb-eb9e3e87b4af
-md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))    Altitude(m) =  $(@bind Alt_op NumberField(0:100:11000, default=4000))    Max. Oper. Mach=  $(@bind MMO NumberField(0:.05:1, default=.6))      "
+md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))    Altitude(m) =  $(@bind Alt_op NumberField(0:100:20000, default=4000))    Max. Oper. Mach=  $(@bind MMO NumberField(0:.05:1, default=.6))      "
 
 # ╔═╡ d79c73d4-9889-4feb-8eb8-58583dfcc04c
 md"### Define aircraft parameters and status   "
@@ -102,9 +102,11 @@ g() = 9.81
 """
     ρ(h)
 
-ISA+0 Density in Kg/m^3 as a function of altitude (h) with h in meters (Troposphere). 
+ISA+0 Density in Kg/m^3 as a function of altitude (h) with h in meters (Troposphere and lower Stratosphere). Note that no error is given if the altitude exceeds the lower stratosphere (20000m), but the results will be invalid.
 
 Note ρ is written with \\rho<tab>
+	
+from http://nebula.wsimg.com/ab321c1edd4fa69eaa94b5e8e769b113?AccessKeyId=AF1D67CEBF3A194F66A3&disposition=0&alloworigin=1		
 
 # Examples
 ```julia-repl
@@ -112,8 +114,16 @@ julia> ρ(0)
 1.225
 ```
 """
-ρ(h) = 1.225 * (1-0.0000226 * h) ^4.256
-
+#ρ(h) = 1.225 * (1-0.0000226 * h) ^4.256  # From class notes
+	
+# From reference above	
+	
+	
+ρ(h) = if h * 3.28084 < 36089
+	 1.225 * (1 - h *3.28084/ 145442)^4.255876	
+else		
+	 1.225 * 0.297076 * exp(-((h*3.28084 -36089)/20806))
+end		
 #_________________________________________________________________________________
 	
 	
@@ -122,7 +132,9 @@ julia> ρ(0)
 """
     p(h)
 
-ISA+0 Pressure in Pa as a function of altitude (h) with h in meters (Troposphere).
+ISA+0 Pressure in Pa as a function of altitude (h) with h in meters (Troposphere and lower Stratosphere). Note that no error is given if the altitude exceeds the lower stratosphere (20000m), but the results will be invalid.
+
+from http://nebula.wsimg.com/ab321c1edd4fa69eaa94b5e8e769b113?AccessKeyId=AF1D67CEBF3A194F66A3&disposition=0&alloworigin=1	
 
 # Examples
 ```julia-repl
@@ -130,7 +142,13 @@ julia> p(0)
 101325
 ```
 """	
-p(h) = 101325 * (1-0.0000226 * h) ^5.256
+# p(h) = 101325 * (1-0.0000226 * h) ^5.256 # From class notes
+	
+p(h) = if h * 3.28084 < 36089
+	101325 * (1 - h*3.28084 / 145442)^5.255876	# From reference above
+else
+	101325 * 0.223361  * exp(-((h*3.28084 -36089)/20806))
+end
 	
 #_________________________________________________________________________________	
 	
@@ -139,15 +157,58 @@ p(h) = 101325 * (1-0.0000226 * h) ^5.256
 """
     T(h)
 
-ISA+0 Temperature in K as a function of altitude (h) with h in meters (Troposphere).
+ISA+0 Temperature in K as a function of altitude (h) with h in meters (Troposphere and lower Stratosphere). Note that no error is given if the altitude exceeds the lower stratosphere (20000m), but the results will be invalid.
 
+from http://nebula.wsimg.com/ab321c1edd4fa69eaa94b5e8e769b113?AccessKeyId=AF1D67CEBF3A194F66A3&disposition=0&alloworigin=1		
+	
 # Examples
 ```julia-repl
 julia> T(0)
-288.15
+288.16
 ```
 """		
-T(h) = 288.15 -6.5 * h /1000
+#T(h) = 288.16 -6.5 * h /1000  # From class notes
+T(h) =  if h * 3.28084 < 36089
+	288.16*(1 - (h  *3.28084   ) / 145442	)	# From reference above
+else
+	288.16 * 0.751865
+end
+#_________________________________________________________________________________	
+
+	
+#_________________________________________________________________________________
+"""
+    μ(h)
+
+Dynamic viscosity in Pa·s as a function of altitude (h) with h in meters, at any altitude
+
+from http://nebula.wsimg.com/ab321c1edd4fa69eaa94b5e8e769b113?AccessKeyId=AF1D67CEBF3A194F66A3&disposition=0&alloworigin=1		
+	
+# Examples
+```julia-repl
+julia> μ(0)
+1.7894285287902668e-5
+```
+"""		
+μ(h) = 1.458e-6 *T(h)^(3/2) / (T(h) + 110.4) 
+#_________________________________________________________________________________	
+	
+
+#_________________________________________________________________________________
+"""
+    Re_m(v, h)
+
+Reynolds number per meter of length as a function of True Air Speed (v) and altitude (h) with h in meters, in Troposphere and lower Stratosphere assuming ISA+0 conditions. Note that no error is given if the altitude exceeds the lower stratosphere (20000m), but the results will be invalid.
+
+	
+# Examples
+```julia-repl
+julia> Re_m(300, 10000)
+8.49684500702956e6
+```
+"""		
+	
+Re_m(v, h) = ρ(h)	* v / μ(h)
 #_________________________________________________________________________________	
 	
 	
@@ -155,7 +216,7 @@ T(h) = 288.15 -6.5 * h /1000
 """
     a(h)
 
-ISA+0 **speed of sound** in m/s as a function of altitude (**h**) with h in meters (Troposphere). 
+ISA+0 **speed of sound** in m/s as a function of altitude (**h**) with h in meters at any altitude
 	
 Note `√` is written with \\sqrt<tab>.
 
@@ -173,7 +234,7 @@ a(h) = √(1.4*287*T(h))
 """
     M(TAS, h)
 
-Mach number for a given *True Air Speed (TAS)* in m/s and altitude *h* in meters (troposphere) assuming ISA+0 conditions.
+Mach number for a given *True Air Speed (TAS)* in m/s and altitude *h* in meters at any altitude assuming ISA+0 conditions.
 
 # Examples
 ```julia-repl
@@ -189,7 +250,7 @@ M(TAS, h) = TAS / a(h)
 """
     q(TAS, h)
 
-ISA+0 **Dynamic pressure (q)** in Pa as a function of True Air Speed in m/s and altitude (**h**) with h in meters (Troposphere).
+ISA+0 **Dynamic pressure (q)** in Pa as a function of True Air Speed in m/s and altitude (**h**) with h in meters at any altitude
 
 # Examples
 ```julia-repl
@@ -249,16 +310,11 @@ ms2kt(v) = 	v*1.94384449
 #_________________________________________________________________________________	
 	
 
-	
-	
-	
+
+
 # **** TODO list ****
 	
-# viscosity
-	
 # Re/m
-	
-# Extend to Stratosphere
 	
 # Add temperature shift
 	
@@ -269,11 +325,22 @@ ms2kt(v) = 	v*1.94384449
 end	;
 
 # ╔═╡ 19816267-988f-45d5-8c39-bedc11d76e12
-md"TAS(m/s) = $(TAS_op) ······ TAS(kt) = $(round(ms2kt(TAS_op); digits = 1)) ······ 
-EAS(m/s) = $(round(TAS2EAS(TAS_op, Alt_op); digits = 1)) ······ EAS(kt) =  $(round(ms2kt(TAS2EAS(TAS_op, Alt_op));  digits = 1))"
+md"""
+
+TAS(m/s) = $(TAS_op) ······ TAS(kt) = $(round(ms2kt(TAS_op); digits = 1)) ······ 
+EAS(m/s) = $(round(TAS2EAS(TAS_op, Alt_op); digits = 1)) ······ 
+EAS(kt) =  $(round(ms2kt(TAS2EAS(TAS_op, Alt_op));  digits = 1))
+
+"""
 
 # ╔═╡ 29124d03-7ae5-49f1-8aff-272bc9f3d5cd
-md"Mach no =  $(round(M(TAS_op, Alt_op); digits = 2))  ······ Altitude (m) =  $(Alt_op) ······  Altitude (ft) =  $(round(Int,Alt_op*3.28084))     "
+md"""
+
+Mach no =  $(round(M(TAS_op, Alt_op); digits = 2))  ······ 
+Altitude =  $(string(Alt_op)*" m, ") $(string(round(Int,Alt_op*3.28084))*" ft")  ····
+Reynolds per meter (millions) = $( round(Re_m(TAS_op, Alt_op)/1e6; digits = 3) )
+
+"""
 
 # ╔═╡ bef4363e-34ef-499b-85cc-eead54a8ede2
 begin
@@ -521,7 +588,7 @@ end;
 begin
 
 TAS_range = 1:5:360  # Define the range of TAS for the x axis (from 1 to 360 in steps of 5)
-h_range = [1:250:11600...] # Define the range of altitudes for the y axis (frfom 1 to 10000 metres in steps of 250m(
+h_range = [1:250:max(Alt_op+1000, 9000)...] # Define the range of altitudes for the y axis (frfom 1 to 10000 metres in steps of 250m(
 
 	
 # Initialize plot	
@@ -560,7 +627,7 @@ xlabel!("TAS (m/s)")  # Set label for x axis
 ylabel!("Altitude (m)")  # Set label for y axis
 title!("Dynamic pressure contour with stall and Mach boundaries")
 	
-plot!(size=(660, 400))	# Update plot attributes
+plot!(size=(660, 400), legend=:bottomright)	# Update plot attributes
 
 end
 
@@ -659,7 +726,7 @@ xlabel!("TAS (m/s)")  # Set label for x axis
 ylabel!("L/D")  # Set label for y axis (wrt: "with respect to")
 title!("Aircraft Lift to Drag ratio")
 	
-plot!()  # Update plot with all of the above
+plot!(legend=:bottomright)  # Update plot with all of the above
 	
 end
 
@@ -696,17 +763,17 @@ xlabel!("TAS (m/s)")  # Set label for x axis
 ylabel!("Power required (W)")  # Set label for y axis (wrt: "with respect to")
 title!("Aircraft Power Required (PR) for steady and level flight")
 	
-plot!()  # Update plot with all of the above
+plot!(legend=:bottomright)  # Update plot with all of the above
 	
 end
 
 # ╔═╡ a57e579f-5c6e-48f6-a390-2d3b7b816372
 begin
 	
-	plot( xticks = 0:1000:11000, yticks = 0:10:100, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
+	plot( xticks = 0:1000:20000, yticks = 0:10:100, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
 	
 	# Plotting the data
-	h1 = (1:500:11000)   # Define series for x axis (from 0 to 10000 in steps of 500)
+	h1 = (1:500:20000)   # Define series for x axis (from 0 to 10000 in steps of 500)
 	
 	# Draw lines for relative density, pressure, speed of sound and T
 	plot!(h1, p.(h1)./p(0)*100, label = "p(h)/p(0) %", linewidth =3)
