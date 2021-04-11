@@ -62,6 +62,9 @@ md"  Aircraft weight in Newton = $(round(Int, Mass*9.81)) ···· Wing Loading 
 # ╔═╡ 508a4cb4-5b8b-40b2-a8bd-33f761a06281
 md" **e** =  $(@bind Oswald NumberField(0.1:.01:1.5, default=.85)) ······ **Aspect Ratio** =  $(@bind AR NumberField(1:.1:30, default=10))  "
 
+# ╔═╡ 876054ed-76df-4865-8cea-a918bec4bbdb
+md"  _**Note: DC stands for 'Drag Count'. where 1 DC is equal to a CD = 1/10000**_"
+
 # ╔═╡ eda69bea-39a4-4d72-ba7b-302d5f1a9182
 
 
@@ -824,6 +827,7 @@ TableOfContents(aside=true) # Show table of contents
 # ╟─98eeefa9-5c98-4c1c-9d00-f494d3eb095a
 # ╟─508a4cb4-5b8b-40b2-a8bd-33f761a06281
 # ╟─701806df-20fe-4181-b9d0-789f0d4a9944
+# ╟─876054ed-76df-4865-8cea-a918bec4bbdb
 # ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
 # ╟─eda69bea-39a4-4d72-ba7b-302d5f1a9182
 # ╟─887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
