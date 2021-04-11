@@ -43,7 +43,7 @@ Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER.", [md" This notebook is i
 md"### Set Operating Point for calculations ✈  "
 
 # ╔═╡ addf6fa0-3335-4250-9dcb-eb9e3e87b4af
-md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))  ······   Altitude(m) =  $(@bind Alt_op NumberField(0:100:11000, default=4000))      "
+md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))    Altitude(m) =  $(@bind Alt_op NumberField(0:100:11000, default=4000))  ······   Max. Oper. Mach=  $(@bind MMO NumberField(0:.05:1, default=.6))      "
 
 # ╔═╡ d79c73d4-9889-4feb-8eb8-58583dfcc04c
 md"### Define aircraft parameters and status   "
@@ -417,7 +417,7 @@ Thrust_required(TAS, h, CD0, Sw, e, W, AR) = Drag_parasitic(TAS, h, CD0, Sw) + D
 """
     Power_required(TAS, h, CD0, Sw, e, W, AR)
 
-Calculate aircraft power required for steady and level flight in W from true air speed (TAS) in m/s, altitude (h) in meters, aircraft zero lift drag coefficient (CD0), wing reference area (Sw) in m^2, Oswald factor (e), aircraft weight (W) in Newtons and wing aspect ratio (AR).
+Calculate aircraft power required for steady and level flight in Watts from true air speed (TAS) in m/s, altitude (h) in meters, aircraft zero lift drag coefficient (CD0), wing reference area (Sw) in m^2, Oswald factor (e), aircraft weight (W) in Newtons and wing aspect ratio (AR).
 	
 # Examples
 ```julia-repl
@@ -429,6 +429,46 @@ Power_required(TAS, h, CD0, Sw, e, W, AR) = TAS * Thrust_required(TAS, h, CD0, S
 #_________________________________________________________________________________	
 
 
+	
+
+#_________________________________________________________________________________
+"""
+    Minimum_power_required(CD0, Sw, e, W, AR, h)
+
+Calculate aircraft minimum power required for steady and level flight in Watts from aircraft zero lift drag coefficient (CD0), wing reference area (Sw) in m^2, Oswald factor (e), aircraft weight (W) in Newtons, wing aspect ratio (AR) and altitude (h) in meters.
+	
+# Examples
+```julia-repl
+julia> Minimum_power_required(.02, 30, .85, 60000, 10, 4000)
+78760.21221299442
+```
+"""
+Minimum_power_required(CD0, Sw, e, W, AR, h) = 4 * 2^.5 * CD0^.25 * W * 
+	( W / (Sw * ρ(h)))^.5 / (3*π*e*AR)^(3/4)
+#_________________________________________________________________________________		
+	
+	
+
+
+#_________________________________________________________________________________
+"""
+    VMDV(CD0, Sw, e, W, AR, h)
+
+Calculate speed (TAS) for minimum power required, in m/s, from aircraft zero lift drag coefficient (CD0), wing reference area (Sw) in m^2, Oswald factor (e), aircraft weight (W) in Newtons, wing aspect ratio (AR) and altitude (h) in meters.
+		
+# Examples
+```julia-repl
+julia> VMD(0.02, 20, .8, 80000, 10, 1000)
+100.7593963754324
+```
+"""
+VMDV(CD0, Sw, e, W, AR, h) = (2/(12*π * AR * e * CD0)^.5 )   *   (W/(Sw*ρ(h)))^.5
+#_________________________________________________________________________________		
+	
+		
+	
+	
+	
 	
 #_________________________________________________________________________________
 """
@@ -460,15 +500,25 @@ begin
 TASstall = 	Vs1gTAS(Mass*9.81, Alt_op, CLmax, Sw) # Stall speed TAS in m/s
 EASstall = TAS2EAS(TASstall,  Alt_op) # Stall speed EAS in m/s
 
+TAS_at_MMO = MMO * a(Alt_op) # TAS corresponding to MMO at operating altitude
+	
+	
 AC_CDi = CDi(CL(TAS_op, Alt_op, Sw, Mass*g()) , AR, Oswald) # Aircraft induced drag coefficient
 AC_CD = AC_CDi + CD0  # Total aircraft drag coefficient	
 	
 AC_CL = CL(TAS_op, Alt_op, Sw, Mass*g()) # Aircraft lift coefficient
 
 AC_VMD = VMD(CD0, Sw, Oswald, Mass*g(), AR, Alt_op) # Aircraft minimum drag speed in m/s (TAS)	
+	
+AC_VMDV = VMDV(CD0, Sw, Oswald, Mass*g(), AR, Alt_op) # Aircraft speed for minimum power required, in m/s (TAS)		
+	
 
-AC_min_thrust_required = Thrust_required(AC_VMD, Alt_op, CD0, Sw, Oswald, Mass*g(), AR)	
+AC_min_thrust_required = Thrust_required(AC_VMD, Alt_op, CD0, Sw, Oswald, Mass*g(), AR)	# Aircraft minimum Thrust required for steady and level flight in Newtons
+	
+AC_power_required_at_min_drag = Power_required(AC_VMD, Alt_op, CD0, Sw, Oswald, Mass*g(), AR)	# Aircraft power required to fly in steady and level flight at the minimum drag TAS speed, in Watts
 
+AC_minimum_power_required = Minimum_power_required(CD0, Sw, Oswald, Mass*g(), AR, Alt_op) 
+	
 	
 AC_LDmax = LD_max(CD0, AR, Oswald)  # Aircraft L/D max	
 	
@@ -484,7 +534,7 @@ h_range = [1:250:11600...] # Define the range of altitudes for the y axis (frfom
 	
 # Initialize plot	
 plot( xticks = 0:50:400, yticks = 0:500:11500, leg=true,
-	  grid = (:xy, :olivedrab, :dot, 1, .8) , c= :roma) 
+	  grid = (:xy, :olivedrab, :dot, 1, .7) , c= :roma) 
 
 # Draw a contout plot with the dynamic pressure as a function of TAS and Altitude	
 plot!(contour(TAS_range, h_range, q, fill = true, c= :coolwarm) )
@@ -492,10 +542,10 @@ plot!(contour(TAS_range, h_range, q, fill = true, c= :coolwarm) )
 # Draw a boundary showing the stall speed (TAS) as a function of altitude
 plot!(((g()*Mass)./(ρ.(h_range)*CLmax*Sw)).^.5, h_range, label = "Stall speed", lw= 3)
 
-# Draw a reference line for Mach = 0.5 (below it the flow can be assumed incompressible - although there is no incompressible flow in reality). Below, draw additional Mach boundaries as lines for reference
+# Draw a reference line for Mach = 0.5 (below it the flow can be assumed incompressible - although there is no incompressible flow in reality). Below, draw additional Mach boundaries corresponding to the maximum operating Mach number (MMO) and M=1 as lines for reference
 plot!((0.5.*a.(h_range))  , h_range, label = "M = 0.5", lw= 1)
-plot!((0.75.*a.(h_range))  , h_range, label = "M = 0.75", lw= 2)
-plot!((1.0.*a.(h_range))  , h_range, label = "M = 1", lw= 3)
+plot!((MMO.*a.(h_range))  , h_range, label = "MMO = "*string(MMO), lw= 2)
+plot!((1.0.*a.(h_range))  , h_range, label = "M = 1", lw= 3, c=:red)
 	
 # Draw a circle showing the operating point under study
 scatter!([TAS_op],[Alt_op], label = "Operating Point", ms = 4)	
@@ -534,7 +584,7 @@ begin
 plot( xticks = 10:20:350, yticks = 0:100000:5000000, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
 	
 	# Plotting the data
-v1 = (TASstall:1:350)   # Define series for x axis (from 0 to 10000 in steps of 500)
+v1 = (TASstall:1:TAS_at_MMO)   # Define range of TAS speeds in x axis; from stall speed to TAS corresponding to maximum operating Mach number
 
 	
 plot!(v1, Drag_parasitic.(v1, Alt_op, CD0, Sw), label = "D_parasitic (N)", linewidth =3)
@@ -568,7 +618,7 @@ begin
 plot( xticks = 10:20:350, yticks = 0:1:50, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
 	
 # Plotting the data
-v2 = (TASstall:1:350)   # Define series for x axis (from 0 to 10000 in steps of 500)
+v2 = (TASstall:1:TAS_at_MMO)   # Define range of TAS speeds in x axis; from stall speed to TAS corresponding to maximum operating Mach number
 
 plot!(v2, (CL.(v2, Alt_op, Sw, Mass*g()))./(  (CD0 .+ CDi.(CL.(v2, Alt_op, Sw, Mass*g() ) , AR, Oswald))    )       , label = "L/D", linewidth =3)
 
@@ -589,6 +639,45 @@ plot!()  # Update plot with all of the above
 	
 end
 
+# ╔═╡ ef4b7a28-6877-4d9b-b966-a71eb2e71f3e
+begin
+	
+plot( xticks = 10:20:350, yticks = 0:100000:500000, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
+	
+# Plotting the data
+v3 = (TASstall:1:TAS_at_MMO)   # Define range of TAS speeds in x axis; from stall speed to TAS corresponding to maximum operating Mach number
+
+# Draw curve of power required at the operating altitude
+plot!(v3, Power_required.(v3, Alt_op, CD0, Sw, Oswald, Mass*g(), AR)         , label = "L/D", linewidth =3)
+
+# Draw a circle showing power required at the minimum drag speed
+scatter!([AC_VMD],[AC_power_required_at_min_drag], label = "PR at VMD", ms = 4)	
+# Plot tangent from origin
+plot!([0,AC_VMD], [0,AC_power_required_at_min_drag], label = "Tangent from origin", linewidth =2, line = :dashdot)
+# Add annotation with value of power required at VMD
+annotate!([AC_VMD+2]  ,[AC_power_required_at_min_drag*.96], Plots.text(string(round(Int, AC_power_required_at_min_drag))*" W", 8, :black, :left))		
+	
+	
+	
+scatter!([AC_VMDV],[AC_minimum_power_required], label = "PR at VMD", ms = 4)	
+	
+
+
+annotate!([AC_VMD]  ,[AC_LDmax*0.92], Plots.text("@TAS = "*string(round(Int, AC_VMD))*" m/s", 8, :black, :left))
+	
+		
+# Final plot attributes
+xlabel!("TAS (m/s)")  # Set label for x axis
+ylabel!("Power required (W)")  # Set label for y axis (wrt: "with respect to")
+title!("Aircraft Power Required for steady and level flight")
+	
+plot!()  # Update plot with all of the above
+	
+end
+
+# ╔═╡ 5ca03fae-d928-4e98-8926-113f6d8fac15
+Minimum_power_required(.02, 30, .85, 60000, 10, 4000)
+
 # ╔═╡ a57e579f-5c6e-48f6-a390-2d3b7b816372
 begin
 	
@@ -596,10 +685,16 @@ begin
 	
 	# Plotting the data
 	h1 = (1:500:11000)   # Define series for x axis (from 0 to 10000 in steps of 500)
-		
+	
+	# Draw lines for relative density, pressure, speed of sound and T
 	plot!(h1, p.(h1)./p(0)*100, label = "p(h)/p(0) %", linewidth =3)
 	plot!(h1, ρ.(h1)./ρ(0)*100, label = "ρ(h)/ρ(0) %", linewidth =3)
+	plot!(h1, a.(h1)./a(0)*100, label = "a(h)/a(0) %", linewidth =2)
 	plot!(h1, T.(h1)./T(0)*100, label = "T(h)/T(0) %", linewidth =2, line = :dashdot)
+	
+	# Draw line at operating altitude
+	plot!([Alt_op,Alt_op], [0,100], label = "a(h)/a(0) %", linewidth =2, line = :dashdot)
+	
 	
 	# Final plot attributes
 	xlabel!("h (m)")  # Set label for x axis
@@ -613,13 +708,16 @@ end
 # ╔═╡ 5afceffa-6e23-422e-81ee-4aee76899d93
 md" 🌍 Graphics showing relative variation with respect to Mean Sea Level (MSL) values of pressure, density and temperature with altitude in ISA+0 conditions in troposphere"
 
+# ╔═╡ 76b0b70e-3df0-4047-97d4-aaf6fc6be5b5
+
+
+# ╔═╡ 8b1ccfb8-6b6c-4caa-823f-b16b59eee635
+md" The code below this point is to set-up the notebook"
+
 # ╔═╡ 7693366f-2c0c-4be3-be85-e2d7d7591977
 md"""
 > [***For help with plots follow this link***](http://docs.juliaplots.org/latest/tutorial/) (and then come back to the Pluto notebook)
 """
-
-# ╔═╡ 8b1ccfb8-6b6c-4caa-823f-b16b59eee635
-md" The code below this point is to set-up the notebook"
 
 # ╔═╡ caaadf91-6ddd-4933-bf1a-98fb11ab0fec
 TableOfContents(aside=true)
@@ -633,7 +731,7 @@ TableOfContents(aside=true)
 # ╟─19816267-988f-45d5-8c39-bedc11d76e12
 # ╟─29124d03-7ae5-49f1-8aff-272bc9f3d5cd
 # ╟─ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
-# ╟─304934d3-cf2e-443c-8c42-74940e584160
+# ╠═304934d3-cf2e-443c-8c42-74940e584160
 # ╟─d79c73d4-9889-4feb-8eb8-58583dfcc04c
 # ╟─22aa1e3d-5265-4e35-90bb-b146954efcf5
 # ╟─de07547d-4c70-4793-96f2-8dfb2379ac54
@@ -643,13 +741,16 @@ TableOfContents(aside=true)
 # ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
 # ╟─887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 # ╟─2b985fdb-f11c-4d23-8708-516fc9a64cf4
+# ╠═ef4b7a28-6877-4d9b-b966-a71eb2e71f3e
 # ╟─ae28f744-625b-4fac-a8d2-c74855c752ea
-# ╟─bef4363e-34ef-499b-85cc-eead54a8ede2
+# ╠═bef4363e-34ef-499b-85cc-eead54a8ede2
+# ╠═5ca03fae-d928-4e98-8926-113f6d8fac15
 # ╟─27007d5a-6f85-4ff4-9185-ab1e0df69eea
 # ╟─13b762d4-366a-47a5-ad77-a18e2b187b78
 # ╟─a57e579f-5c6e-48f6-a390-2d3b7b816372
 # ╟─5afceffa-6e23-422e-81ee-4aee76899d93
-# ╟─7693366f-2c0c-4be3-be85-e2d7d7591977
+# ╟─76b0b70e-3df0-4047-97d4-aaf6fc6be5b5
 # ╟─8b1ccfb8-6b6c-4caa-823f-b16b59eee635
+# ╟─7693366f-2c0c-4be3-be85-e2d7d7591977
 # ╟─caaadf91-6ddd-4933-bf1a-98fb11ab0fec
 # ╟─20454a26-4719-4c30-9e46-483c27eb630d
