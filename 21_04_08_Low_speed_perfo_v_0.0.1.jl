@@ -15,6 +15,8 @@ end
 
 # ╔═╡ 20454a26-4719-4c30-9e46-483c27eb630d
 begin
+	
+	# Code to import required packages to run this notebook
 	import Pkg
 	Pkg.activate(mktempdir())
 	Pkg.add([
@@ -43,7 +45,7 @@ Markdown.MD(Markdown.Admonition("danger", "DISCLAIMER.", [md" This notebook is i
 md"### Set Operating Point for calculations ✈  "
 
 # ╔═╡ addf6fa0-3335-4250-9dcb-eb9e3e87b4af
-md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))    Altitude(m) =  $(@bind Alt_op NumberField(0:100:11000, default=4000))  ······   Max. Oper. Mach=  $(@bind MMO NumberField(0:.05:1, default=.6))      "
+md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, default=70))    Altitude(m) =  $(@bind Alt_op NumberField(0:100:11000, default=4000))    Max. Oper. Mach=  $(@bind MMO NumberField(0:.05:1, default=.6))      "
 
 # ╔═╡ d79c73d4-9889-4feb-8eb8-58583dfcc04c
 md"### Define aircraft parameters and status   "
@@ -58,7 +60,10 @@ md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.1:10:600000, def
 md"  Aircraft weight in Newton = $(round(Int, Mass*9.81)) ···· Wing Loading (Kgf/m^2) = $(round((Mass/Sw); digits=1))   "
 
 # ╔═╡ 508a4cb4-5b8b-40b2-a8bd-33f761a06281
-md" **e** =  $(@bind Oswald NumberField(0.1:.1:1.5, default=.85)) ······ **Aspect Ratio** =  $(@bind AR NumberField(1:1:30, default=10))  "
+md" **e** =  $(@bind Oswald NumberField(0.1:.01:1.5, default=.85)) ······ **Aspect Ratio** =  $(@bind AR NumberField(1:.1:30, default=10))  "
+
+# ╔═╡ eda69bea-39a4-4d72-ba7b-302d5f1a9182
+
 
 # ╔═╡ ae28f744-625b-4fac-a8d2-c74855c752ea
 md"### Aircraft Aerodynamic functions"
@@ -429,8 +434,6 @@ Power_required(TAS, h, CD0, Sw, e, W, AR) = TAS * Thrust_required(TAS, h, CD0, S
 #_________________________________________________________________________________	
 
 
-	
-
 #_________________________________________________________________________________
 """
     Minimum_power_required(CD0, Sw, e, W, AR, h)
@@ -445,9 +448,8 @@ julia> Minimum_power_required(.02, 30, .85, 60000, 10, 4000)
 """
 Minimum_power_required(CD0, Sw, e, W, AR, h) = 4 * 2^.5 * CD0^.25 * W * 
 	( W / (Sw * ρ(h)))^.5 / (3*π*e*AR)^(3/4)
-#_________________________________________________________________________________		
-	
-	
+#_________________________________________________________________________________	
+
 
 
 #_________________________________________________________________________________
@@ -458,17 +460,12 @@ Calculate speed (TAS) for minimum power required, in m/s, from aircraft zero lif
 		
 # Examples
 ```julia-repl
-julia> VMD(0.02, 20, .8, 80000, 10, 1000)
-100.7593963754324
+julia> VMDV(0.02, 20, .8, 80000, 10, 1000)
+76.56058503076727
 ```
 """
-VMDV(CD0, Sw, e, W, AR, h) = (2/(12*π * AR * e * CD0)^.5 )   *   (W/(Sw*ρ(h)))^.5
+VMDV(CD0, Sw, e, W, AR, h) = (2/(12 * π * AR * e * CD0)^.25 )   *   (W/(Sw*ρ(h)))^.5
 #_________________________________________________________________________________		
-	
-		
-	
-	
-	
 	
 #_________________________________________________________________________________
 """
@@ -483,12 +480,7 @@ julia> VMD(0.02, 20, .8, 80000, 10, 1000)
 ```
 """
 VMD(CD0, Sw, e, W, AR, h) = (4/(π*AR*e*CD0))^.25*(W/(Sw*ρ(h)))^.5
-#_________________________________________________________________________________		
-	
-	
-	
-	
-	
+#_________________________________________________________________________________	
 	
 	
 end;
@@ -568,7 +560,7 @@ xlabel!("TAS (m/s)")  # Set label for x axis
 ylabel!("Altitude (m)")  # Set label for y axis
 title!("Dynamic pressure contour with stall and Mach boundaries")
 	
-plot!(size=(680, 400))	# Update plot attributes
+plot!(size=(660, 400))	# Update plot attributes
 
 end
 
@@ -578,10 +570,42 @@ md" Aircraft CDi(DC) = $(round(Int, 10000*AC_CDi)) ······ Aircraft CD0(DC)
 # ╔═╡ c755a5f9-8e92-4612-bfa1-ec543cd66d97
 md" Stall speeds ······ TAS =  $(round(TASstall; digits = 1))(m/s)    $(round(ms2kt(TASstall); digits = 1))(kt)               ······  EAS =  $(round(EASstall; digits = 1)) (m/s)  $(round(ms2kt(EASstall); digits = 1))   (kt)          "
 
+# ╔═╡ 82a8227c-489a-4c53-ad5e-cc97555f43f7
+md"""
+
+Minimum Thrust required = $(string(round(Int, AC_min_thrust_required))*" N") 
+at $(string(round(AC_VMD; digits = 1))*" m/s (TAS,)")  
+$(string(round(ms2kt(AC_VMD); digits = 1))*" kt(TAS), ")  
+$(string(round(ms2kt(TAS2EAS(AC_VMD, Alt_op)); digits = 1))*" KEAS, ") 
+
+"""
+
+# ╔═╡ d243b143-428a-4939-9f7f-b995254f45e0
+md"""
+
+Maximum L/D = $(string(round(AC_LDmax; digits = 2))*" ") 
+at $(string(round(AC_VMD; digits = 1))*" m/s (TAS,)")  
+$(string(round(ms2kt(AC_VMD); digits = 1))*" kt(TAS), ")  
+$(string(round(ms2kt(TAS2EAS(AC_VMD, Alt_op)); digits = 1))*" KEAS, ") 
+
+"""
+
+# ╔═╡ b4160b27-8180-4446-bd2c-a0551bd2a9d1
+md"""
+
+Minimum Power Required = $(string(round(Int, AC_minimum_power_required))*" W") 
+at $(string(round(AC_VMDV; digits = 1))*" m/s (TAS,)")  
+$(string(round(ms2kt(AC_VMDV); digits = 1))*" kt(TAS), ")  
+$(string(round(ms2kt(TAS2EAS(AC_VMDV, Alt_op)); digits = 1))*" KEAS, ") 
+
+"""
+
 # ╔═╡ 887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 begin
 	
-plot( xticks = 10:20:350, yticks = 0:100000:5000000, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
+plot(xticks = 0:10:350, 
+	 yticks = 0:round(Int, AC_min_thrust_required/4):AC_min_thrust_required*50, leg=true, size=(660, 400),
+     grid = (:xy, :olivedrab, :dot, .5, .8)) # Initialize plot with basic parameters
 	
 	# Plotting the data
 v1 = (TASstall:1:TAS_at_MMO)   # Define range of TAS speeds in x axis; from stall speed to TAS corresponding to maximum operating Mach number
@@ -615,7 +639,7 @@ end
 # ╔═╡ 2b985fdb-f11c-4d23-8708-516fc9a64cf4
 begin
 	
-plot( xticks = 10:20:350, yticks = 0:1:50, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
+plot( xticks = 0:10:350, yticks = 0:1:100, leg=true, size=(660, 300),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
 	
 # Plotting the data
 v2 = (TASstall:1:TAS_at_MMO)   # Define range of TAS speeds in x axis; from stall speed to TAS corresponding to maximum operating Mach number
@@ -625,7 +649,7 @@ plot!(v2, (CL.(v2, Alt_op, Sw, Mass*g()))./(  (CD0 .+ CDi.(CL.(v2, Alt_op, Sw, M
 # Draw a circle showing the minimum thrust required
 scatter!([AC_VMD],[AC_LDmax], label = "L/D max", ms = 4)	
 
-annotate!([AC_VMD]  ,[AC_LDmax*.96], Plots.text("L/Dmax= "*string(round(Int, AC_LDmax)), 8, :black, :left))	
+annotate!([AC_VMD]  ,[AC_LDmax*.96], Plots.text("L/Dmax= "*string(round(AC_LDmax;digits = 1)), 8, :black, :left))	
 
 annotate!([AC_VMD]  ,[AC_LDmax*0.92], Plots.text("@TAS = "*string(round(Int, AC_VMD))*" m/s", 8, :black, :left))
 	
@@ -642,13 +666,15 @@ end
 # ╔═╡ ef4b7a28-6877-4d9b-b966-a71eb2e71f3e
 begin
 	
-plot( xticks = 10:20:350, yticks = 0:100000:500000, leg=true, size=(680, 400),grid = (:xy, :olivedrab, :dot, .5, .8)     ) # Initialize plot with some basic parameters
+plot(xticks = 0:10:350, 
+	 yticks = 0:round(Int, AC_minimum_power_required/4):AC_minimum_power_required*50, leg=true, size=(660, 400),
+	 grid = (:xy, :olivedrab, :dot, .5, .8)) # Initialize plot with basic parameters
 	
 # Plotting the data
 v3 = (TASstall:1:TAS_at_MMO)   # Define range of TAS speeds in x axis; from stall speed to TAS corresponding to maximum operating Mach number
 
 # Draw curve of power required at the operating altitude
-plot!(v3, Power_required.(v3, Alt_op, CD0, Sw, Oswald, Mass*g(), AR)         , label = "L/D", linewidth =3)
+plot!(v3, Power_required.(v3, Alt_op, CD0, Sw, Oswald, Mass*g(), AR)         , label = "PR", linewidth =3)
 
 # Draw a circle showing power required at the minimum drag speed
 scatter!([AC_VMD],[AC_power_required_at_min_drag], label = "PR at VMD", ms = 4)	
@@ -658,25 +684,21 @@ plot!([0,AC_VMD], [0,AC_power_required_at_min_drag], label = "Tangent from origi
 annotate!([AC_VMD+2]  ,[AC_power_required_at_min_drag*.96], Plots.text(string(round(Int, AC_power_required_at_min_drag))*" W", 8, :black, :left))		
 	
 	
+# Draw a circle showing minimum power required	
+scatter!([AC_VMDV],[AC_minimum_power_required], label = "PR min", ms = 4)	
 	
-scatter!([AC_VMDV],[AC_minimum_power_required], label = "PR at VMD", ms = 4)	
-	
-
-
-annotate!([AC_VMD]  ,[AC_LDmax*0.92], Plots.text("@TAS = "*string(round(Int, AC_VMD))*" m/s", 8, :black, :left))
+# Add annotation with value of minimum power required
+annotate!([AC_VMDV+2]  ,[AC_power_required_at_min_drag*.96], Plots.text(string(round(Int, AC_minimum_power_required))*" W", 8, :black, :left))
 	
 		
 # Final plot attributes
 xlabel!("TAS (m/s)")  # Set label for x axis
 ylabel!("Power required (W)")  # Set label for y axis (wrt: "with respect to")
-title!("Aircraft Power Required for steady and level flight")
+title!("Aircraft Power Required (PR) for steady and level flight")
 	
 plot!()  # Update plot with all of the above
 	
 end
-
-# ╔═╡ 5ca03fae-d928-4e98-8926-113f6d8fac15
-Minimum_power_required(.02, 30, .85, 60000, 10, 4000)
 
 # ╔═╡ a57e579f-5c6e-48f6-a390-2d3b7b816372
 begin
@@ -693,7 +715,7 @@ begin
 	plot!(h1, T.(h1)./T(0)*100, label = "T(h)/T(0) %", linewidth =2, line = :dashdot)
 	
 	# Draw line at operating altitude
-	plot!([Alt_op,Alt_op], [0,100], label = "a(h)/a(0) %", linewidth =2, line = :dashdot)
+	plot!([Alt_op,Alt_op], [0,100], label = "Operating altitude", linewidth =2, line = :dashdot)
 	
 	
 	# Final plot attributes
@@ -708,9 +730,6 @@ end
 # ╔═╡ 5afceffa-6e23-422e-81ee-4aee76899d93
 md" 🌍 Graphics showing relative variation with respect to Mean Sea Level (MSL) values of pressure, density and temperature with altitude in ISA+0 conditions in troposphere"
 
-# ╔═╡ 76b0b70e-3df0-4047-97d4-aaf6fc6be5b5
-
-
 # ╔═╡ 8b1ccfb8-6b6c-4caa-823f-b16b59eee635
 md" The code below this point is to set-up the notebook"
 
@@ -719,8 +738,8 @@ md"""
 > [***For help with plots follow this link***](http://docs.juliaplots.org/latest/tutorial/) (and then come back to the Pluto notebook)
 """
 
-# ╔═╡ caaadf91-6ddd-4933-bf1a-98fb11ab0fec
-TableOfContents(aside=true)
+# ╔═╡ 4839b8b3-b070-4510-ad09-0a43bfc35a25
+TableOfContents(aside=true) # Show table of contents
 
 # ╔═╡ Cell order:
 # ╟─d7356e75-d9d5-495c-b661-57864583ae61
@@ -731,7 +750,7 @@ TableOfContents(aside=true)
 # ╟─19816267-988f-45d5-8c39-bedc11d76e12
 # ╟─29124d03-7ae5-49f1-8aff-272bc9f3d5cd
 # ╟─ce4bf0a4-97c8-4bf0-9140-d1ff3f05410c
-# ╠═304934d3-cf2e-443c-8c42-74940e584160
+# ╟─304934d3-cf2e-443c-8c42-74940e584160
 # ╟─d79c73d4-9889-4feb-8eb8-58583dfcc04c
 # ╟─22aa1e3d-5265-4e35-90bb-b146954efcf5
 # ╟─de07547d-4c70-4793-96f2-8dfb2379ac54
@@ -739,18 +758,20 @@ TableOfContents(aside=true)
 # ╟─508a4cb4-5b8b-40b2-a8bd-33f761a06281
 # ╟─701806df-20fe-4181-b9d0-789f0d4a9944
 # ╟─c755a5f9-8e92-4612-bfa1-ec543cd66d97
+# ╟─eda69bea-39a4-4d72-ba7b-302d5f1a9182
 # ╟─887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
+# ╟─82a8227c-489a-4c53-ad5e-cc97555f43f7
 # ╟─2b985fdb-f11c-4d23-8708-516fc9a64cf4
-# ╠═ef4b7a28-6877-4d9b-b966-a71eb2e71f3e
+# ╟─d243b143-428a-4939-9f7f-b995254f45e0
+# ╟─ef4b7a28-6877-4d9b-b966-a71eb2e71f3e
+# ╟─b4160b27-8180-4446-bd2c-a0551bd2a9d1
 # ╟─ae28f744-625b-4fac-a8d2-c74855c752ea
-# ╠═bef4363e-34ef-499b-85cc-eead54a8ede2
-# ╠═5ca03fae-d928-4e98-8926-113f6d8fac15
+# ╟─bef4363e-34ef-499b-85cc-eead54a8ede2
 # ╟─27007d5a-6f85-4ff4-9185-ab1e0df69eea
 # ╟─13b762d4-366a-47a5-ad77-a18e2b187b78
 # ╟─a57e579f-5c6e-48f6-a390-2d3b7b816372
 # ╟─5afceffa-6e23-422e-81ee-4aee76899d93
-# ╟─76b0b70e-3df0-4047-97d4-aaf6fc6be5b5
 # ╟─8b1ccfb8-6b6c-4caa-823f-b16b59eee635
 # ╟─7693366f-2c0c-4be3-be85-e2d7d7591977
-# ╟─caaadf91-6ddd-4933-bf1a-98fb11ab0fec
+# ╟─4839b8b3-b070-4510-ad09-0a43bfc35a25
 # ╟─20454a26-4719-4c30-9e46-483c27eb630d
