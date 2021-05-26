@@ -674,8 +674,9 @@ $(string(round(ms2kt(TAS2EAS(AC_VMDV, Alt_op)); digits = 1))*" KEAS, ")
 begin
 	
 plot(xticks = 0:10:350, 
-	 yticks = 0:round(Int, AC_min_thrust_required/4):AC_min_thrust_required*50, leg=true, size=(660, 400),
+	 yticks = 0:max(round(Int, AC_min_thrust_required/4),1):AC_min_thrust_required*50, leg=true, size=(660, 400),
      grid = (:xy, :olivedrab, :dot, .5, .8)) # Initialize plot with basic parameters
+	
 	
 	# Plotting the data
 v1 = (TASstall:1:TAS_at_MMO)   # Define range of TAS speeds in x axis; from stall speed to TAS corresponding to maximum operating Mach number
