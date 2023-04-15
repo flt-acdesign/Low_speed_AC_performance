@@ -21,7 +21,7 @@ begin
 	Pkg.activate(mktempdir())
 	Pkg.add([
 			Pkg.PackageSpec(name="PlutoUI", version="0.7"), 
-			Pkg.PackageSpec(name="Plots", version="1.10"), 
+			Pkg.PackageSpec(name="Plots"), 
 			Pkg.PackageSpec(name="Colors", version="0.12"),
 			Pkg.PackageSpec(name="ColorSchemes", version="3.10"),
 			Pkg.PackageSpec(name="LaTeXStrings"),
