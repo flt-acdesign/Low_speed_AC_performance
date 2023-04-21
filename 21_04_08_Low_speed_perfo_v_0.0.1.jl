@@ -258,10 +258,15 @@ ISA+0 **Dynamic pressure (q)** in Pa as a function of True Air Speed in m/s and 
 # Examples
 ```julia-repl
 julia> q(70,0)
-3001.25
+3001.6987513711897
 ```
 """		
-q(TAS,h) = .5 * 1.4 * p(h)* M(TAS,h)^2
+#q(TAS,h) = .5 * ρ(h)* TAS^2   # incompressible formulation
+
+function q(TAS, h)  # compressible formulation
+	γ = 1.4   # ratio of heat capacities for air
+	return (.5* p(h) * γ * M(TAS,h)^2)
+end
 #_________________________________________________________________________________
 	
 
