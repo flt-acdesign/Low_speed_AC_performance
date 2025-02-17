@@ -43,7 +43,7 @@ md" Operating Point:       TAS(m/s) =  $(@bind TAS_op NumberField(1:1:340, defau
 md"### Define aircraft parameters and status   "
 
 # ╔═╡ 22aa1e3d-5265-4e35-90bb-b146954efcf5
-md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(1:1:1000, default=18.2))     ······Aircraft maximum lift coefficient (**CLmax**) =  $(@bind CLmax NumberField(0.1:.1:7, default=1.2))      "
+md" Wing area in *m^2* (**Sw**) =  $(@bind Sw NumberField(.1:1.:1000., default=18.2))     ······Aircraft maximum lift coefficient (**CLmax**) =  $(@bind CLmax NumberField(0.1:.1:7, default=1.2))      "
 
 # ╔═╡ de07547d-4c70-4793-96f2-8dfb2379ac54
 md" Aircraft mass in *kg* (**M**) =  $(@bind Mass NumberField(0.0:10:600000, default=650)) ······ **CD0** =  $(@bind CD0 NumberField(0.0:.005:.1, default=.014))   "
