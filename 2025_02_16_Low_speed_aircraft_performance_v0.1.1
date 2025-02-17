@@ -52,27 +52,6 @@ md" Aircraft mass in *kg* (**M**) =  $(@bind Mass_raw NumberField(0.0:10.0:60000
 # ╔═╡ 508a4cb4-5b8b-40b2-a8bd-33f761a06281
 md" **e** =  $(@bind Oswald_raw NumberField(0.1:.01:1.5, default=.7)) ······ **Aspect Ratio** =  $(@bind AR_raw NumberField(1:.1:30, default=13.8))  "
 
-# ╔═╡ 0150f119-30be-428c-8002-af0bcb9189dc
-begin
-
-# Filter values which cannot be equal to 0 or empty and provide a default or fallback value
-	
-# Define a generic function that replaces NaN with 1 and any value below 0.01 with a specified fallback (default: 0.01)
-force_nonzero(x, fallback=0.01) = isnan(x) ? 1 : (x < 0.01 ? fallback : x)
-
-# Ensure Sw and CLmax are always valid numbers using something()
-Sw = force_nonzero(something(Sw_raw, 18.2))   
-CLmax = force_nonzero(something(CLmax_raw, 1.2))  
-Mass = force_nonzero(something(Mass_raw, 1.0)) 
-CD0 = force_nonzero(something(CD0_raw, 1.0)) 
-Oswald = force_nonzero(something(Oswald_raw, 1.0))
-AR = force_nonzero(something(AR_raw, 1.0))
-	
-end;
-
-# ╔═╡ 98eeefa9-5c98-4c1c-9d00-f494d3eb095a
-md"  Aircraft weight in Newton = $(round(Int, Mass*9.81)) ···· Wing Loading (Kgf/m^2) = $(round((Mass/Sw); digits=1))   "
-
 # ╔═╡ 876054ed-76df-4865-8cea-a918bec4bbdb
 md"  _**Note: DC stands for 'Drag Count'. where 1 DC is equal to a CD = 1/10000**_"
 
@@ -352,9 +331,10 @@ end	;
 # ╔═╡ 19816267-988f-45d5-8c39-bedc11d76e12
 md"""
 
-TAS(m/s) = $(TAS_op) ······ TAS(kt) = $(round(ms2kt(TAS_op); digits = 1)) ······ 
-EAS(m/s) = $(round(TAS2EAS(TAS_op, Alt_op); digits = 1)) ······ 
-EAS(kt) =  $(round(ms2kt(TAS2EAS(TAS_op, Alt_op));  digits = 1))
+TAS(m/s) = $(TAS_op) ·· TAS(kt) = $(round(ms2kt(TAS_op); digits = 1)) ·· 
+EAS(m/s) = $(round(TAS2EAS(TAS_op, Alt_op); digits = 1)) ·· 
+EAS(kt) =  $(round(ms2kt(TAS2EAS(TAS_op, Alt_op));  digits = 1)) ..
+EAS(Km/h) =  $(round(3.6*(TAS2EAS(TAS_op, Alt_op));  digits = 1))
 
 """
 
@@ -577,6 +557,73 @@ VMD(CD0, Sw, e, W, AR, h) = (4/(π*AR*e*CD0))^.25*(W/(Sw*ρ(h)))^.5
 	
 end;
 
+# ╔═╡ a57e579f-5c6e-48f6-a390-2d3b7b816372
+begin
+	
+plot(xticks = (0:1000:20000, [string(x) for x in 0:1000:20000]),  # Reduced tick density
+     yticks = 0:10:100,
+     leg=true, 
+     size=(680, 500),
+     grid = (:xy, :olivedrab, :dot, 0.5, 0.8),
+     xrotation=45,              # Rotate x-ticks 45 degrees
+     tickfontsize=9,            # Smaller font size
+     xguidefontsize=11,         # Keep axis label slightly larger
+     bottom_margin=20Plots.mm)  # Add margin for rotated labels
+	
+	# Plotting the data
+	h1 = (1:500:20000)   # Define series for x axis (from 0 to 10000 in steps of 500)
+	
+	# Draw lines for relative density, pressure, speed of sound and T
+	plot!(h1, p.(h1)./p(0)*100, label = "p(h)/p(0) %", linewidth =3)
+	plot!(h1, ρ.(h1)./ρ(0)*100, label = "ρ(h)/ρ(0) %", linewidth =3)
+	plot!(h1, a.(h1)./a(0)*100, label = "a(h)/a(0) %", linewidth =2)
+	plot!(h1, T.(h1)./T(0)*100, label = "T(h)/T(0) %", linewidth =2, line = :dashdot)
+	
+	# Draw line at operating altitude
+	plot!([Alt_op,Alt_op], [0,100], label = "Operating altitude", linewidth =2, line = :dashdot)
+	
+	
+	# Final plot attributes
+	xlabel!("h (m)")  # Set label for x axis
+	ylabel!("% wrt MSL values")  # Set label for y axis (wrt: "with respect to")
+	title!("% (value at altitude / value at MSL) of ISA quantities")
+	
+	plot!()  # Update plot with all of the above
+	
+end
+
+# ╔═╡ 5afceffa-6e23-422e-81ee-4aee76899d93
+md" 🌍 Graphics showing relative variation with respect to Mean Sea Level (MSL) values of pressure, density and temperature with altitude in ISA+0 conditions in troposphere"
+
+# ╔═╡ 8b1ccfb8-6b6c-4caa-823f-b16b59eee635
+md" The code below this point is to set-up the notebook"
+
+# ╔═╡ 30a993d1-1dc7-4dd8-894c-60bc1a83c9a7
+	md"""
+	> [***For help with plots follow this link***](http://docs.juliaplots.org/latest/tutorial/) (and then come back to the Pluto notebook)
+	"""
+
+# ╔═╡ 9c5749c5-76bb-4549-b978-22cab6c98337
+	TableOfContents(aside=true) # Show table of contents
+
+# ╔═╡ 0150f119-30be-428c-8002-af0bcb9189dc
+begin
+
+# Filter values which cannot be equal to 0 or empty and provide a default or fallback value
+	
+# Define a generic function that replaces NaN with 1 and any value below 0.01 with a specified fallback (default: 0.01)
+force_nonzero(x, fallback=0.01) = isnan(x) ? 1 : (x < 0.01 ? fallback : x)
+
+# Ensure Sw and CLmax are always valid numbers using something()
+Sw = force_nonzero(something(Sw_raw, 18.2))   
+CLmax = force_nonzero(something(CLmax_raw, 1.2))  
+Mass = force_nonzero(something(Mass_raw, 1.0)) 
+CD0 = force_nonzero(something(CD0_raw, 1.0)) 
+Oswald = force_nonzero(something(Oswald_raw, 1.0))
+AR = force_nonzero(something(AR_raw, 1.0))
+	
+end;
+
 # ╔═╡ 304934d3-cf2e-443c-8c42-74940e584160
 begin
 # calculate global variables of aircraft flight conditions
@@ -656,9 +703,6 @@ plot!(size=(660, 400), legend=:bottomright)	# Update plot attributes
 
 end
 
-# ╔═╡ 701806df-20fe-4181-b9d0-789f0d4a9944
-md" Aircraft CDi(DC) = $(round(Int, 10000*AC_CDi)) ······ Aircraft CD0(DC) = $(round(Int, 10000*CD0))  ······ Aircraft CD(DC) = $(round(Int, 10000*AC_CD)) "
-
 # ╔═╡ c755a5f9-8e92-4612-bfa1-ec543cd66d97
 md" Stall speeds ······ TAS =  $(round(TASstall; digits = 1))(m/s)    $(round(ms2kt(TASstall); digits = 1))(kt)               ······  EAS =  $(round(EASstall; digits = 1)) (m/s)  $(round(ms2kt(EASstall); digits = 1))   (kt)          "
 
@@ -691,6 +735,12 @@ $(string(round(ms2kt(AC_VMDV); digits = 1))*" kt(TAS), ")
 $(string(round(ms2kt(TAS2EAS(AC_VMDV, Alt_op)); digits = 1))*" KEAS, ") 
 
 """
+
+# ╔═╡ 98eeefa9-5c98-4c1c-9d00-f494d3eb095a
+md"  Aircraft weight in Newton = $(round(Int, Mass*9.81)) ···· Wing Loading (Kgf/m^2) = $(round((Mass/Sw); digits=1))   "
+
+# ╔═╡ 701806df-20fe-4181-b9d0-789f0d4a9944
+md" Aircraft CDi(DC) = $(round(Int, 10000*AC_CDi)) ······ Aircraft CD0(DC) = $(round(Int, 10000*CD0))  ······ Aircraft CD(DC) = $(round(Int, 10000*AC_CD)) "
 
 # ╔═╡ 887e79e9-c63b-4c52-ade5-44a0bcfdfcf8
 begin
@@ -1053,55 +1103,6 @@ md"
 Power required at operating point ($(TAS_op) m/s TAS) =
 $(string(round(Power_required.(TAS_op, Alt_op, CD0, Sw, Oswald, Mass*g(), AR); digits = 0))) W
 "
-
-# ╔═╡ a57e579f-5c6e-48f6-a390-2d3b7b816372
-begin
-	
-plot(xticks = (0:1000:20000, [string(x) for x in 0:1000:20000]),  # Reduced tick density
-     yticks = 0:10:100,
-     leg=true, 
-     size=(680, 500),
-     grid = (:xy, :olivedrab, :dot, 0.5, 0.8),
-     xrotation=45,              # Rotate x-ticks 45 degrees
-     tickfontsize=9,            # Smaller font size
-     xguidefontsize=11,         # Keep axis label slightly larger
-     bottom_margin=20Plots.mm)  # Add margin for rotated labels
-	
-	# Plotting the data
-	h1 = (1:500:20000)   # Define series for x axis (from 0 to 10000 in steps of 500)
-	
-	# Draw lines for relative density, pressure, speed of sound and T
-	plot!(h1, p.(h1)./p(0)*100, label = "p(h)/p(0) %", linewidth =3)
-	plot!(h1, ρ.(h1)./ρ(0)*100, label = "ρ(h)/ρ(0) %", linewidth =3)
-	plot!(h1, a.(h1)./a(0)*100, label = "a(h)/a(0) %", linewidth =2)
-	plot!(h1, T.(h1)./T(0)*100, label = "T(h)/T(0) %", linewidth =2, line = :dashdot)
-	
-	# Draw line at operating altitude
-	plot!([Alt_op,Alt_op], [0,100], label = "Operating altitude", linewidth =2, line = :dashdot)
-	
-	
-	# Final plot attributes
-	xlabel!("h (m)")  # Set label for x axis
-	ylabel!("% wrt MSL values")  # Set label for y axis (wrt: "with respect to")
-	title!("% (value at altitude / value at MSL) of ISA quantities")
-	
-	plot!()  # Update plot with all of the above
-	
-end
-
-# ╔═╡ 5afceffa-6e23-422e-81ee-4aee76899d93
-md" 🌍 Graphics showing relative variation with respect to Mean Sea Level (MSL) values of pressure, density and temperature with altitude in ISA+0 conditions in troposphere"
-
-# ╔═╡ 8b1ccfb8-6b6c-4caa-823f-b16b59eee635
-md" The code below this point is to set-up the notebook"
-
-# ╔═╡ 30a993d1-1dc7-4dd8-894c-60bc1a83c9a7
-	md"""
-	> [***For help with plots follow this link***](http://docs.juliaplots.org/latest/tutorial/) (and then come back to the Pluto notebook)
-	"""
-
-# ╔═╡ 9c5749c5-76bb-4549-b978-22cab6c98337
-	TableOfContents(aside=true) # Show table of contents
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2303,8 +2304,8 @@ version = "1.4.1+2"
 # ╟─5afceffa-6e23-422e-81ee-4aee76899d93
 # ╟─8b1ccfb8-6b6c-4caa-823f-b16b59eee635
 # ╟─30a993d1-1dc7-4dd8-894c-60bc1a83c9a7
-# ╠═9c5749c5-76bb-4549-b978-22cab6c98337
-# ╠═20454a26-4719-4c30-9e46-483c27eb630d
-# ╠═0150f119-30be-428c-8002-af0bcb9189dc
+# ╟─9c5749c5-76bb-4549-b978-22cab6c98337
+# ╟─20454a26-4719-4c30-9e46-483c27eb630d
+# ╟─0150f119-30be-428c-8002-af0bcb9189dc
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
